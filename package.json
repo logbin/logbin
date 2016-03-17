@@ -1,0 +1,77 @@
+{
+  "name": "logbin.io-client",
+  "version": "0.0.1",
+  "description": "NodeJS client for logbin.io",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "build-test": "babel test --out-dir test-build",
+    "jshint": "jshint src/ test/",
+    "jscs": "jscs src/ test/",
+    "test": "mocha -b test-build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Proto-Garage/logbin.io-client.git"
+  },
+  "keywords": [
+    "logger",
+    "log"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Proto-Garage/logbin.io-client/issues"
+  },
+  "homepage": "https://github.com/Proto-Garage/logbin.io-client#readme",
+  "jshintConfig": {
+    "node": true,
+    "undef": true,
+    "unused": true,
+    "esnext": true,
+    "sub": true,
+    "validthis": true,
+    "noyield": true,
+    "strict": true,
+    "globals": {
+      "describe": true,
+      "it": true,
+      "before": true,
+      "after": true
+    }
+  },
+  "jscsConfig": {
+    "preset": "jquery",
+    "fileExtensions": [
+      "js"
+    ],
+    "requireCurlyBraces": true,
+    "requireSemicolons": true,
+    "requireSpacesInFunctionDeclaration": {
+      "beforeOpeningRoundBrace": true,
+      "beforeOpeningCurlyBrace": true
+    },
+    "disallowQuotedKeysInObjects": {
+      "allExcept": [
+        "reserved"
+      ]
+    },
+    "validateIndentation": 2,
+    "maximumLineLength": 125,
+    "validateLineBreaks": "LF",
+    "disallowTrailingComma": true,
+    "disallowUnusedParams": true,
+    "disallowImplicitTypeConversion": [
+      "string"
+    ],
+    "validateQuoteMarks": "'",
+    "esnext": true
+  },
+  "dependencies": {
+    "babel-cli": "^6.6.5"
+  },
+  "devDependencies": {
+    "jscs": "^2.11.0",
+    "jshint": "^2.9.1",
+    "mocha": "^2.4.5"
+  }
+}
