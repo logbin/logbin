@@ -3,7 +3,7 @@
 function getSubscriptionStrings ( store, scope, severity ) {
   if ( !store ) {
     return new Error( 'No store given.' );
-  };
+  }
 
   severity = severity !== undefined ? severity : '';
   severity = severity === '--pretty' ? '' : severity;
