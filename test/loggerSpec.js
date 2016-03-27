@@ -1,7 +1,7 @@
 'use strict';
 var assert = require( 'assert' );
 var dateFormat = require( 'dateformat' );
-describe( 'Testing Logger API', function() {
+describe( 'Testing Logger API', () => {
   var logger = require( '../src/lib/logger.js' )( 'VoltronChronicles' );
   var socket = logger.socket;
 
