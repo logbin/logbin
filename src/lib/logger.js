@@ -60,7 +60,8 @@ var Logger = function( name ) {
       console.log( JSON.stringify( sendLog ) );
       callback( null );
       this.pscope = 'server'; //Resets the property scope to server
-      return this;
+      //just return a resolved promise for sending a log to socket
+      return Promise.resolve( 'sending of logs to server success' );
     },
 
     socket: socket
