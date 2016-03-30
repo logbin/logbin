@@ -3,12 +3,12 @@
 var clientConnector = require( './clientConnector.js' );
 var severities = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var dateFormat = require( 'dateformat' );
-clientConnector.startConnecting();
 var socket = clientConnector.socket;
 var pscope;
 var message;
 
-var Logger = function( name ) {
+var Logger = function( name, addr ) {
+  clientConnector.startConnecting( addr );
   return {
     level: severities[ 2 ],
     time: function() {
@@ -60,7 +60,8 @@ var Logger = function( name ) {
       console.log( JSON.stringify( sendLog ) );
       callback( null );
       this.pscope = 'server'; //Resets the property scope to server
-      return this;
+      //just return a resolved promise for sending a log to socket
+      return Promise.resolve( 'sending of logs to server success' );
     },
 
     socket: socket
