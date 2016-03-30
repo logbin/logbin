@@ -3,12 +3,12 @@
 var clientConnector = require( './clientConnector.js' );
 var severities = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var dateFormat = require( 'dateformat' );
-clientConnector.startConnecting();
 var socket = clientConnector.socket;
 var pscope;
 var message;
 
-var Logger = function( name ) {
+var Logger = function( name, addr ) {
+  clientConnector.startConnecting( addr );
   return {
     level: severities[ 2 ],
     time: function() {

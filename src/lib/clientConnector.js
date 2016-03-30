@@ -5,8 +5,9 @@ var socket = new zmq.socket( 'req' );
 var subscriber = new zmq.socket( 'sub' );
 var reqClient = new zmq.socket( 'req' );
 
-exports.startConnecting = function() {
-  socket.connect( 'tcp://127.0.0.1:5555' );
+exports.startConnecting = function( addr ) {
+  var serverAddr = addr !== undefined ? addr : 'tcp://127.0.0.1:5555';
+  socket.connect( serverAddr );
 };
 
 exports.connectToOutbound = function() {
