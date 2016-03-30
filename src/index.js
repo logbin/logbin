@@ -8,15 +8,26 @@ var pscope;
 var message;
 
 var Logger = function( name, addr ) {
+
   clientConnector.startConnecting( addr );
+
+  clientConnector.sendConnectionRequest();
+  clientConnector.startHeartBeat();
+
+  socket.on( 'message', ( data ) => {
+    console.log( data.toString() );
+  } );
+
   return {
     level: severities[ 2 ],
+
     time: function() {
       return new Date();
     },
 
     pscope: 'server',
     store: name,
+
     info: function( message ) {
       this.level = severities[ 2 ];
       this.log( 'info', message, function() {
@@ -53,19 +64,34 @@ var Logger = function( name, addr ) {
           pdata: message,
           pscope: this.pscope,
           level: sevLevel,
+          token: 'EkjFpCW0x',
           timestamp:dateFormat( 'mmmm dd HH:MM:ss' )
         }
       };
+
       socket.send( JSON.stringify( sendLog ) );
-      console.log( JSON.stringify( sendLog ) );
-      callback( null );
-      this.pscope = 'server'; //Resets the property scope to server
-      //just return a resolved promise for sending a log to socket
+      try {
+        callback( null );
+      } catch ( e ) {
+
+      }
+      this.pscope = 'server';
       return Promise.resolve( 'sending of logs to server success' );
     },
 
     socket: socket
   };
 };
+
+var disconnect = {
+  payload: {
+    operation: 'disconnect'
+  }
+};
+
+process.on( 'SIGINT', () => {
+  socket.send( JSON.stringify( disconnect ) );
+  process.exit();
+} );
 
 module.exports = Logger;
