@@ -2,7 +2,7 @@
 var assert = require( 'assert' );
 var dateFormat = require( 'dateformat' );
 describe( 'Testing Logger API', () => {
-  var logger = require( '../src/index.js' )( 'VoltronChronicles' );
+  var logger = require( '../src/index.js' )( { store: 'VoltronChronicles', uri: 'tcp://127.0.0.1:5555' } );
   var socket = logger.socket;
 
   it( 'should create a logger default object', function( done ) {
