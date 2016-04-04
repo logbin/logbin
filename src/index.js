@@ -3,13 +3,16 @@
 var clientConnector = require( './lib/clientConnector.js' );
 var severities = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var dateFormat = require( 'dateformat' );
+var logStream = require( './lib/logStream.js' );
 var socket = clientConnector.socket;
 var pscope;
 var message;
 
-var Logger = function( name, addr ) {
-
-  clientConnector.startConnecting( addr );
+var Logger = function( opts ) {
+  var store = opts.store;
+  var uri = opts.uri !== undefined ? opts.uri : 'tcp://127.0.0.1:5555';
+  clientConnector.startConnecting( uri );
+  clientConnector.connectToOutbound();
 
   clientConnector.sendConnectionRequest();
   clientConnector.startHeartBeat();
@@ -26,7 +29,7 @@ var Logger = function( name, addr ) {
     },
 
     pscope: 'server',
-    store: name,
+    store: store,
 
     info: function( message ) {
       this.level = severities[ 2 ];
@@ -50,7 +53,7 @@ var Logger = function( name, addr ) {
 
       if ( typeof options !== 'string' ) {
         this.pscope = options.scope !== undefined ? options.scope : 'server';
-        message = options.pdata;
+        message = options;
       } else {
         pscope = ( options.scope !== undefined ) ? options.scope : 'server';
         message = options;
@@ -70,6 +73,8 @@ var Logger = function( name, addr ) {
       };
 
       socket.send( JSON.stringify( sendLog ) );
+
+      //Console.log(); console.log transport by default
       try {
         callback( null );
       } catch ( e ) {
@@ -79,7 +84,11 @@ var Logger = function( name, addr ) {
       return Promise.resolve( 'sending of logs to server success' );
     },
 
-    socket: socket
+    socket: socket,
+
+    realtime: function( data ) {
+      logStream( clientConnector.subscriber, store, data );
+    }
   };
 };
 
