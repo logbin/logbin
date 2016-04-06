@@ -1,25 +1,27 @@
 'use strict';
 
 var clientConnector = require( './lib/clientConnector.js' );
-var severities = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var dateFormat = require( 'dateformat' );
-var logStream = require( './lib/logStream.js' );
+
+// Suspend logstream functionality for now
+// var logStream = require( './lib/logStream.js' );
+var Q = require( 'q' );
+var NodeCache = require( 'node-cache' );
+var UUID = require( 'uuid-js' );
+
+var refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
+var severities = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var socket = clientConnector.socket;
 var pscope;
 var message;
 
 var Logger = function( opts ) {
   var store = opts.store;
-  var uri = opts.uri !== undefined ? opts.uri : 'tcp://127.0.0.1:5555';
-  clientConnector.startConnecting( uri );
+  clientConnector.startConnecting( opts.uri );
   clientConnector.connectToOutbound();
 
   clientConnector.sendConnectionRequest();
   clientConnector.startHeartBeat();
-
-  socket.on( 'message', ( data ) => {
-    console.log( data.toString() );
-  } );
 
   return {
     level: severities[ 2 ],
@@ -45,10 +47,11 @@ var Logger = function( opts ) {
       return this;
     },
 
-    log: function( sevLevel, options, callback ) {
-      if ( options === undefined ) {
-        callback( 'sevLevel and message must not be undefined.' );
-        return;
+    log: function( sevLevel, options ) {
+      let deferred = Q.defer();
+
+      if ( !options ) {
+        deferred.reject( 'Invalid arguments' );
       }
 
       if ( typeof options !== 'string' ) {
@@ -60,37 +63,45 @@ var Logger = function( opts ) {
       }
 
       var sendLog = {
-        ref: 4501,
+        ref: UUID.create( 1 ).toString(),
+        operation: 'send',
+        store: this.store,
         payload: {
-          operation: 'send',
-          store: this.store,
           pdata: message,
           pscope: this.pscope,
           level: sevLevel,
-          token: 'EkjFpCW0x',
-          timestamp:dateFormat( 'mmmm dd HH:MM:ss' )
+          timestamp: dateFormat( 'mmmm dd HH:MM:ss' )
         }
       };
 
       socket.send( JSON.stringify( sendLog ) );
-
-      //Console.log(); console.log transport by default
-      try {
-        callback( null );
-      } catch ( e ) {
-
-      }
+      refDeferredPairCache.set( sendLog.ref, deferred );
       this.pscope = 'server';
-      return Promise.resolve( 'sending of logs to server success' );
+
+      return deferred.promise;
     },
 
-    socket: socket,
+    socket: socket
 
-    realtime: function( data ) {
-      logStream( clientConnector.subscriber, store, data );
-    }
+    // *** Reconstruct later
+    // realtime: function( data ) {
+    //   logStream( clientConnector.subscriber, store, data );
+    // }
   };
 };
+
+socket.on( 'message', ( response ) => {
+  let jsonResponse = JSON.parse( response.toString() );
+  var deferred = refDeferredPairCache.get( jsonResponse.ref );
+  if ( deferred ) {
+    refDeferredPairCache.del( jsonResponse.ref );
+    deferred.resolve( jsonResponse );
+  }
+} );
+
+refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
+  deferred.reject( 'No response received for message with reference id: ' + ref );
+} );
 
 var disconnect = {
   payload: {
