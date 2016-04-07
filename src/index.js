@@ -22,7 +22,9 @@ inbound.on( 'message', ( response ) => {
 var Logger = function( opts ) {
 
   // jscs: disable
-  inbound.plain_password = 'EkjFpCW0x';
+  if ( opts.password ) {
+     inbound.plain_password = 'EkjFpCW0x';
+  }
   // jscs: enable
   inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
   this.store = opts.store;
