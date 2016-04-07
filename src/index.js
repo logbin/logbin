@@ -20,6 +20,12 @@ inbound.on( 'message', ( response ) => {
 } );
 
 var Logger = function( opts ) {
+
+  // jscs: disable
+  if ( opts.password ) {
+     inbound.plain_password = 'EkjFpCW0x';
+  }
+  // jscs: enable
   inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
   this.store = opts.store;
   this.pscope = opts.scope || 'server';
@@ -80,6 +86,10 @@ Logger.prototype.log = function( level, input ) {
       validLevels: levels
     };
     deferred.reject( error );
+
+    input = level;
+    level = 'info';
+
   }
 
   let partialPayload = {
