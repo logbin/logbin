@@ -86,6 +86,10 @@ Logger.prototype.log = function( level, input ) {
       validLevels: levels
     };
     deferred.reject( error );
+
+    input = level;
+    level = 'info';
+
   }
 
   let partialPayload = {
