@@ -19,98 +19,96 @@ inbound.on( 'message', ( response ) => {
   }
 } );
 
-class Logbin {
-  constructor( opts ) {
-    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
-    this.store = opts.store;
-    this.pscope = opts.scope || 'server';
-    this.requestTTL = ( opts.reqTTL / 1000 ) || 5;
-  }
+var Logger = function( opts ) {
+  inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
+  this.store = opts.store;
+  this.pscope = opts.scope || 'server';
+  this.requestTTL = ( opts.reqTTL / 1000 ) || 5;
+};
 
-  setStore( store ) {
-    this.store = store;
-    return this;
-  }
+Logger.prototype.setStore = function( store ) {
+  this.store = store;
+  return this;
+};
 
-  setScope( scope ) {
-    this.scope = scope;
-    return this;
-  }
+Logger.prototype.setScope = function( scope ) {
+  this.scope = scope;
+  return this;
+};
 
-  error( input ) {
-    return this.log( 'error', input );
-  }
+Logger.prototype.error = function( input ) {
+  return this.log( 'error', input );
+};
 
-  warn( input ) {
-    return this.log( 'warn', input );
-  }
+Logger.prototype.warn = function( input ) {
+  return this.log( 'warn', input );
+};
 
-  info( input ) {
-    return this.log( 'info', input );
-  }
+Logger.prototype.info = function( input ) {
+  return this.log( 'info', input );
+};
 
-  verbose( input ) {
-    return this.log( 'verbose', input );
-  }
+Logger.prototype.verbose = function( input ) {
+  return this.log( 'verbose', input );
+};
 
-  debug( input ) {
-    return this.log( 'debug', input );
-  }
+Logger.prototype.debug = function( input ) {
+  return this.log( 'debug', input );
+};
 
-  silly( input ) {
-    return this.log( 'silly', input );
-  }
+Logger.prototype.silly = function( input ) {
+  return this.log( 'silly', input );
+};
 
-  log( level, input ) {
-    var deferred = Q.defer();
+Logger.prototype.log = function( level, input ) {
+  var deferred = Q.defer();
 
-    if ( !input ) {
-      let error = {
-        code: 'EMISSINGARG',
-        message: 'Missing log arguments'
-      };
-
-      deferred.reject( error );
-    }
-
-    if ( levels.indexOf( level ) === -1 ) {
-      let error = {
-        code: 'ELEVELINVALID',
-        message: 'Invalid level: ' + level,
-        input: input,
-        validLevels: levels
-      };
-      deferred.reject( error );
-    }
-
-    let partialPayload = {
-      '@pscope': this.scope,
-      '@level': level,
-      '@timestamp': dateFormat( 'mmmm dd HH:MM:ss' )
+  if ( !input ) {
+    let error = {
+      code: 'EMISSINGARG',
+      message: 'Missing log arguments'
     };
 
-    let fullPayload;
-    if ( typeof( input ) === 'string' ) {
-      partialPayload[ '@message' ] = input;
-      fullPayload = partialPayload;
-    } else if ( typeof( input ) === 'object' ) {
-      fullPayload = _.merge( partialPayload, input );
-    }
-
-    let request = {
-      ref: UUID.create( 1 ).toString(),
-      operation: 'send',
-      store: this.store,
-      payload: fullPayload
-    };
-
-    refDeferredPairCache.set( request.ref, deferred );
-    inbound.send( JSON.stringify( request ) );
-
-    return deferred.promise;
+    deferred.reject( error );
   }
 
-}
+  if ( levels.indexOf( level ) === -1 ) {
+    let error = {
+      code: 'ELEVELINVALID',
+      message: 'Invalid level: ' + level,
+      input: input,
+      validLevels: levels
+    };
+    deferred.reject( error );
+  }
+
+  let partialPayload = {
+    '@pscope': this.scope,
+    '@level': level,
+    '@timestamp': dateFormat( 'mmmm dd HH:MM:ss' )
+  };
+
+  let fullPayload;
+  if ( typeof( input ) === 'string' ) {
+    partialPayload[ '@message' ] = input;
+    fullPayload = partialPayload;
+  } else if ( typeof( input ) === 'object' ) {
+    fullPayload = _.merge( partialPayload, input );
+  }
+
+  let request = {
+    ref: UUID.create( 1 ).toString(),
+    operation: 'send',
+    store: this.store,
+    payload: fullPayload
+  };
+
+  refDeferredPairCache.set( request.ref, deferred );
+  inbound.send( JSON.stringify( request ) );
+
+  return deferred.promise;
+
+};
 
 // Handle 'on expire' events of node-cache elements
 refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
@@ -125,8 +123,8 @@ process.on( 'SIGINT', () => {
   process.exit();
 } );
 
-function instanceOfLogbin ( opts ) {
-  return new Logbin( opts );
+function instanceOfLogger ( opts ) {
+  return new Logger( opts );
 }
 
-module.exports = instanceOfLogbin;
+module.exports = instanceOfLogger;
