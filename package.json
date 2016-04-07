@@ -77,6 +77,7 @@
     "zmq": "^2.14.0"
   },
   "devDependencies": {
+    "co-mocha": "^1.1.2",
     "jscs": "^2.11.0",
     "jshint": "^2.9.1",
     "mocha": "^2.4.5"
