@@ -34,10 +34,12 @@ describe( 'Testing Logger API', () => {
   it( 'should support chaining for non-returning methods', function() {
     logger
       .setStore( 'teststore' )
-      .setScope( 'app' );
+      .setScope( 'app' )
+      .setRequestTTL( 1 );
 
     assert.equal( logger.store, 'teststore' );
     assert.equal( logger.scope, 'app' );
+    assert.equal( logger.requestTTL, 1 );
   } );
 
   it( 'should send an error and return a promise', function *() {
