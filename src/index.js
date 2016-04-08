@@ -29,7 +29,7 @@ var Logger = function( opts ) {
   inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
   this.store = opts.store;
   this.pscope = opts.scope || 'server';
-  this.requestTTL = ( opts.reqTTL / 1000 ) || 5;
+  this.requestTTL = opts.requestTTL || 5;
 };
 
 Logger.prototype.setStore = function( store ) {
@@ -39,6 +39,11 @@ Logger.prototype.setStore = function( store ) {
 
 Logger.prototype.setScope = function( scope ) {
   this.scope = scope;
+  return this;
+};
+
+Logger.prototype.setRequestTTL = function( sec ) {
+  this.requestTTL = sec;
   return this;
 };
 
@@ -113,7 +118,7 @@ Logger.prototype.log = function( level, input ) {
     payload: fullPayload
   };
 
-  refDeferredPairCache.set( request.ref, deferred );
+  refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
   inbound.send( JSON.stringify( request ) );
 
   return deferred.promise;
