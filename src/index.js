@@ -47,29 +47,11 @@ Logger.prototype.setRequestTTL = function( sec ) {
   return this;
 };
 
-Logger.prototype.error = function( input ) {
-  return this.log( 'error', input );
-};
-
-Logger.prototype.warn = function( input ) {
-  return this.log( 'warn', input );
-};
-
-Logger.prototype.info = function( input ) {
-  return this.log( 'info', input );
-};
-
-Logger.prototype.verbose = function( input ) {
-  return this.log( 'verbose', input );
-};
-
-Logger.prototype.debug = function( input ) {
-  return this.log( 'debug', input );
-};
-
-Logger.prototype.silly = function( input ) {
-  return this.log( 'silly', input );
-};
+_( levels ).forEach( ( level ) => {
+  Logger.prototype[ level ] = function( input ) {
+    return this.log( level, input );
+  };
+} );
 
 Logger.prototype.log = function( level, input ) {
   var deferred = Q.defer();
