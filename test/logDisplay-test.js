@@ -1,4 +1,5 @@
 'use strict';
+require( 'babel-polyfill' );
 
 var assert = require( 'assert' );
 var logDisplay = require( '../src/lib/logDisplay' );
