@@ -8,7 +8,7 @@
     "build-test": "babel test --out-dir test-build",
     "jshint": "jshint src/ test/",
     "jscs": "jscs src/ test/",
-    "test": "mocha -b --harmony --recursive test/"
+    "test": "mocha -b --recursive test/"
   },
   "repository": {
     "type": "git",
