@@ -4,8 +4,8 @@ machine:
     version: v0.12.9
 test:
   override:
-    - npm build
-    - npm build-test
+    - npm run build
+    - npm run build-test
     - npm test
     - npm run-script jshint
     - npm run-script jscs
