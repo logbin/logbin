@@ -1,4 +1,6 @@
 'use strict';
+require( 'babel-polyfill' );
+
 var assert = require( 'assert' );
 var zmq = require( 'zmq' );
 require( 'co-mocha' );
