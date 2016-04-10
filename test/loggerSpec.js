@@ -1,4 +1,6 @@
 'use strict';
+require( 'babel-polyfill' );
+
 var assert = require( 'assert' );
 var zmq = require( 'zmq' );
 require( 'co-mocha' );
@@ -29,7 +31,7 @@ describe( 'Testing Logger API', () => {
     requestTTL: 5000
   };
 
-  var logger = require( '../src/index.js' )( loggerConfig );
+  var logger = require( '../dist/index.js' )( loggerConfig );
 
   it( 'should support chaining for non-returning methods', function() {
     logger
