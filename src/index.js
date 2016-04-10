@@ -1,5 +1,7 @@
 'use strict';
 
+const password = 'EkjFpCW0x';
+
 var clientConnector = require( './lib/clientConnector.js' );
 var _ = require( 'lodash' );
 var dateFormat = require( 'dateformat' );
@@ -23,7 +25,7 @@ var Logger = function( opts ) {
 
   // jscs: disable
   if ( opts.password ) {
-     inbound.plain_password = 'EkjFpCW0x';
+     inbound.plain_password = password;
   }
   // jscs: enable
   inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
