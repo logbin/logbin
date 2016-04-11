@@ -1,11 +1,11 @@
 'use strict';
 require( 'babel-polyfill' );
+require( 'co-mocha' );
 
 var assert = require( 'assert' );
 var zmq = require( 'zmq' );
-require( 'co-mocha' );
 
-// Start a dummy server
+// Start a dummy inbound server
 var router = zmq.socket( 'router' );
 var uri = 'tcp://127.0.0.1:5555';
 router.bind( uri );
@@ -31,7 +31,7 @@ describe( 'Testing Logger API', () => {
     requestTTL: 5000
   };
 
-  var logger = require( '../dist/index.js' )( loggerConfig );
+  var logger = require( '../dist/index.js' ).logger( loggerConfig );
 
   it( 'should support chaining for non-returning methods', function() {
     logger
@@ -79,7 +79,7 @@ describe( 'Testing Logger API', () => {
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
-  it( 'should send a server response failed', function *() {
+  it( 'should return a server response failed', function *() {
     this.timeout( 7000 );
     return logger.info( 'Do not send a response.' ).then( function fulfilled( result ) {
       throw new Error( 'Promise unexpectedly fulfilled. Result: ' + result );
