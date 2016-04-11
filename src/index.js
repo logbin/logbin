@@ -58,27 +58,34 @@ class Logger {
   log( level, input ) {
     var deferred = Q.defer();
 
+    if ( level !== undefined && input !== undefined ) {
+      if ( levels.indexOf( level ) === -1 ) {
+        let error = {
+          code: 'ELEVELINVALID',
+          message: 'Invalid level: ' + level,
+          input: input,
+          validLevels: levels
+        };
+        deferred.reject( error );
+      }
+    }
+
+    if ( levels.indexOf( level ) === -1 ) {
+
+      // This makes sure that user can provide 1 missing arg
+      input = level;
+      level = 'info';
+
+    }
+
     if ( !input ) {
+
       let error = {
         code: 'EMISSINGARG',
         message: 'Missing log arguments'
       };
 
       deferred.reject( error );
-    }
-
-    if ( levels.indexOf( level ) === -1 ) {
-      let error = {
-        code: 'ELEVELINVALID',
-        message: 'Invalid level: ' + level,
-        input: input,
-        validLevels: levels
-      };
-      deferred.reject( error );
-
-      input = level;
-      level = 'info';
-
     }
 
     let partialPayload = {
