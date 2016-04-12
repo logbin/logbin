@@ -30,6 +30,7 @@ class Logger {
     inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
     this.store = opts.store;
     this.pscope = opts.scope || 'server';
+    this.level = opts.level || 'info';
     this.requestTTL = opts.requestTTL || 5;
 
     _( levels ).forEach( ( level ) => {
@@ -50,42 +51,58 @@ class Logger {
     return this;
   }
 
+  setLevel( level ) {
+    this.level = level;
+    return this;
+  }
+
   setRequestTTL( sec ) {
     this.requestTTL = sec;
     return this;
   }
 
-  log( level, input ) {
+  log( ...params ) {
+    let shouldLog = true;
+    let level = this.level;
+    let input;
     var deferred = Q.defer();
 
-    if ( level !== undefined && input !== undefined ) {
-      if ( levels.indexOf( level ) === -1 ) {
+    switch ( params.length ) {
+      case 0: {
         let error = {
-          code: 'ELEVELINVALID',
-          message: 'Invalid level: ' + level,
-          input: input,
-          validLevels: levels
+          code: 'EMISSINGARG',
+          message: 'Missing log arguments'
         };
+
         deferred.reject( error );
+        break;
       }
-    }
 
-    if ( levels.indexOf( level ) === -1 ) {
+      case 1: {
+        input = params[ 0 ];
+        break;
+      }
 
-      // This makes sure that user can provide 1 missing arg
-      input = level;
-      level = 'info';
+      case 2: {
 
-    }
+        if ( levels.indexOf( params[ 0 ] ) !== -1 ) {
+          level = params[ 0 ];
+          input = params[ 1 ];
+        } else {
+          let error = {
+            code: 'ELEVELINVALID',
+            message: 'Invalid level: ' + level,
+            input: input,
+            validLevels: levels
+          };
+          deferred.reject( error );
 
-    if ( !input ) {
-
-      let error = {
-        code: 'EMISSINGARG',
-        message: 'Missing log arguments'
-      };
-
-      deferred.reject( error );
+          // Prevents the client side from crashing the server
+          shouldLog = false;
+        }
+        break;
+      }
+      default:
     }
 
     let partialPayload = {
@@ -110,7 +127,10 @@ class Logger {
     };
 
     refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
-    inbound.send( JSON.stringify( request ) );
+
+    if ( shouldLog ) {
+      inbound.send( JSON.stringify( request ) );
+    }
 
     return deferred.promise;
   }
