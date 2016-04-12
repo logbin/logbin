@@ -23,9 +23,10 @@ class Logger {
   constructor( opts ) {
 
     // jscs: disable
-    if ( opts.password ) {
-       inbound.plain_password = password;
-    }
+
+  if ( !opts.noPassword ) {
+    inbound.plain_password = password;
+  }
     // jscs: enable
     inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
     this.store = opts.store;
@@ -143,19 +144,24 @@ var outbound = clientConnector.outbound;
 class RealTime extends EventEmitter {
   constructor( opts ) {
     super();
+
     outbound.on( 'message', ( data ) => {
       let jsonData = JSON.parse( data.toString() );
-
       if ( jsonData.operation === 'SEND_LOG' ) {
         this.triggerLogReceived( jsonData );
       } else {
         resolveDeferred( jsonData );
       }
     } );
+
+    // jscs: disable
+    if ( !opts.noPassword ) {
+      outbound.plain_password = password;
+    }
+    // jscs: enable
     this.store = opts.store;
     this.filter = opts.filter;
     this.uri = opts.uri || 'tcp://127.0.0.1:5556';
-
     outbound.connect( this.uri );
   }
 
@@ -170,6 +176,7 @@ class RealTime extends EventEmitter {
   }
 
   subscribe() {
+
     if ( !this.store ) {
       throw new Error( 'Store field should not be empty.' );
     }
@@ -190,6 +197,7 @@ class RealTime extends EventEmitter {
 
     let deferred = Q.defer();
     refDeferredPairCache.set( request.ref, deferred );
+
     outbound.send( JSON.stringify( request ) );
     return deferred.promise;
   }

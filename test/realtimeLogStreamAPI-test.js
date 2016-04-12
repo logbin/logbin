@@ -25,6 +25,7 @@ router.on( 'message', ( envelope, data ) => {
 
 describe( 'Testing Realtime Logstream API', () => {
   var config = {
+    noPassword: true,
     uri: uri,
     store: 'test',
     filter: {
