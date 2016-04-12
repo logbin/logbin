@@ -8,6 +8,7 @@ var dateFormat = require( 'dateformat' );
 var Q = require( 'q' );
 var NodeCache = require( 'node-cache' );
 var UUID = require( 'uuid-js' );
+var prettyjson = require( 'prettyjson' );
 var levels = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
 
@@ -22,16 +23,19 @@ class Logger {
 
   constructor( opts ) {
 
-    // jscs: disable
-    if ( opts.password ) {
-       inbound.plain_password = password;
-    }
-    // jscs: enable
-    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
     this.store = opts.store;
     this.pscope = opts.scope || 'server';
     this.level = opts.level || 'info';
+    this.token = opts.token || password;
+    this.transports = opts.transports;
     this.requestTTL = opts.requestTTL || 5;
+
+    // jscs: disable
+    if ( !opts.noPassword ) {
+      inbound.plain_password = this.token;
+    }
+    // jscs: enable
+    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
 
     _( levels ).forEach( ( level ) => {
       Logger.prototype[ level ] = function( input ) {
@@ -106,7 +110,7 @@ class Logger {
     }
 
     let partialPayload = {
-      '@pscope': this.scope,
+      '@pscope': this.pscope,
       '@level': level,
       '@timestamp': dateFormat( 'mmmm dd HH:MM:ss' )
     };
@@ -129,11 +133,22 @@ class Logger {
     refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
 
     if ( shouldLog ) {
-      inbound.send( JSON.stringify( request ) );
+      if ( this.transports.indexOf( 'console' ) !== -1 ) {
+        console.log( JSON.stringify( request ) );
+      }
+      if ( this.transports.indexOf( 'tcp' ) !== -1 ) {
+        inbound.send( JSON.stringify( request ) );
+      }
     }
 
     return deferred.promise;
   }
+
+  //Implement realtime instance here
+  realtime(  opts ) {
+    return instanceOfRealtime( opts );
+  }
+
 }
 
 // Realtime Object
@@ -143,20 +158,28 @@ var outbound = clientConnector.outbound;
 class RealTime extends EventEmitter {
   constructor( opts ) {
     super();
+
     outbound.on( 'message', ( data ) => {
       let jsonData = JSON.parse( data.toString() );
-
       if ( jsonData.operation === 'SEND_LOG' ) {
         this.triggerLogReceived( jsonData );
       } else {
         resolveDeferred( jsonData );
       }
     } );
+
     this.store = opts.store;
     this.filter = opts.filter;
     this.uri = opts.uri || 'tcp://127.0.0.1:5556';
+    this.token = opts.token || password;
 
+    // jscs: disable
+    if ( !opts.noPassword ) {
+      outbound.plain_password = this.token;
+    }
+    // jscs: enable
     outbound.connect( this.uri );
+    this.subscribe();
   }
 
   setStore( store ) {
@@ -170,6 +193,7 @@ class RealTime extends EventEmitter {
   }
 
   subscribe() {
+
     if ( !this.store ) {
       throw new Error( 'Store field should not be empty.' );
     }
@@ -190,6 +214,7 @@ class RealTime extends EventEmitter {
 
     let deferred = Q.defer();
     refDeferredPairCache.set( request.ref, deferred );
+
     outbound.send( JSON.stringify( request ) );
     return deferred.promise;
   }
@@ -228,7 +253,12 @@ function instanceOfRealtime ( opts ) {
   return new RealTime( opts );
 }
 
+function prettyDisplay ( data ) {
+  console.log( prettyjson.render( data ) + '\n---------------------------------------' );
+}
+
 module.exports = {
   logger: instanceOfLogger,
-  realtime: instanceOfRealtime
+  realtime: instanceOfRealtime,
+  prettyDisplay
 };

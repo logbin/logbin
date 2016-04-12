@@ -25,7 +25,9 @@ router.on( 'message', ( envelope, data ) => {
 
 describe( 'Testing Logger API', () => {
   var loggerConfig = {
+    noPassword: true,
     uri: uri,
+    transports: [ 'tcp' ],
     store: 'clint',
     scope: 'server',
     requestTTL: 5000
@@ -76,6 +78,11 @@ describe( 'Testing Logger API', () => {
 
   it( 'should send a log with object data', function *() {
     let result = yield logger.log( 'error', { name: 'Clint', age: '23' } );
+    assert.equal( result.operation, 'SEND_ACK' );
+  } );
+
+  it( 'should send a log with single parameter passed', function *() {
+    let result = yield logger.log( 'This is just a single argument' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
