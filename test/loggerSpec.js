@@ -27,6 +27,7 @@ describe( 'Testing Logger API', () => {
   var loggerConfig = {
     noPassword: true,
     uri: uri,
+    transports: [ 'tcp' ],
     store: 'clint',
     scope: 'server',
     requestTTL: 5000

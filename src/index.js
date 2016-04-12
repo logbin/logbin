@@ -8,6 +8,7 @@ var dateFormat = require( 'dateformat' );
 var Q = require( 'q' );
 var NodeCache = require( 'node-cache' );
 var UUID = require( 'uuid-js' );
+var prettyjson = require( 'prettyjson' );
 var levels = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
 
@@ -26,6 +27,7 @@ class Logger {
     this.pscope = opts.scope || 'server';
     this.level = opts.level || 'info';
     this.token = opts.token || password;
+    this.transports = opts.transports;
     this.requestTTL = opts.requestTTL || 5;
 
     // jscs: disable
@@ -108,7 +110,7 @@ class Logger {
     }
 
     let partialPayload = {
-      '@pscope': this.scope,
+      '@pscope': this.pscope,
       '@level': level,
       '@timestamp': dateFormat( 'mmmm dd HH:MM:ss' )
     };
@@ -131,11 +133,22 @@ class Logger {
     refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
 
     if ( shouldLog ) {
-      inbound.send( JSON.stringify( request ) );
+      if ( this.transports.indexOf( 'console' ) !== -1 ) {
+        console.log( JSON.stringify( request ) );
+      }
+      if ( this.transports.indexOf( 'tcp' ) !== -1 ) {
+        inbound.send( JSON.stringify( request ) );
+      }
     }
 
     return deferred.promise;
   }
+
+  //Implement realtime instance here
+  realtime(  opts ) {
+    return instanceOfRealtime( opts );
+  }
+
 }
 
 // Realtime Object
@@ -240,7 +253,12 @@ function instanceOfRealtime ( opts ) {
   return new RealTime( opts );
 }
 
+function prettyDisplay ( data ) {
+  console.log( prettyjson.render( data ) + '\n---------------------------------------' );
+}
+
 module.exports = {
   logger: instanceOfLogger,
-  realtime: instanceOfRealtime
+  realtime: instanceOfRealtime,
+  prettyDisplay
 };
