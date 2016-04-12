@@ -97,7 +97,7 @@ describe( 'Testing Logger API', () => {
   } );
 
   it( 'should return missing log argument', function *() {
-    return logger.log( 'info' ).then( function fulfilled( result ) {
+    return logger.log().then( function fulfilled( result ) {
       throw new Error( 'Promise unexpectedly fulfilled. Result: ' + result );
     }, function rejected( error ) {
       assert.equal( error.code, 'EMISSINGARG' );
