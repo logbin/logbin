@@ -22,17 +22,18 @@ class Logger {
 
   constructor( opts ) {
 
-    // jscs: disable
-
-  if ( !opts.noPassword ) {
-    inbound.plain_password = password;
-  }
-    // jscs: enable
-    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
     this.store = opts.store;
     this.pscope = opts.scope || 'server';
     this.level = opts.level || 'info';
+    this.token = opts.token || password;
     this.requestTTL = opts.requestTTL || 5;
+
+    // jscs: disable
+    if ( !opts.noPassword ) {
+      inbound.plain_password = this.token;
+    }
+    // jscs: enable
+    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
 
     _( levels ).forEach( ( level ) => {
       Logger.prototype[ level ] = function( input ) {
@@ -154,15 +155,18 @@ class RealTime extends EventEmitter {
       }
     } );
 
-    // jscs: disable
-    if ( !opts.noPassword ) {
-      outbound.plain_password = password;
-    }
-    // jscs: enable
     this.store = opts.store;
     this.filter = opts.filter;
     this.uri = opts.uri || 'tcp://127.0.0.1:5556';
+    this.token = opts.token || password;
+
+    // jscs: disable
+    if ( !opts.noPassword ) {
+      outbound.plain_password = this.token;
+    }
+    // jscs: enable
     outbound.connect( this.uri );
+    this.subscribe();
   }
 
   setStore( store ) {
