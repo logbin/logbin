@@ -17,6 +17,6 @@ dependencies:
     - sudo apt-get install libtool pkg-config build-essential autoconf automake
     - sudo apt-get install libzmq-dev
     - sudo apt-get install uuid uuid-dev uuid-runtime
-    - if [[ ! -e libsodium-1.0.10 ]]; then wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.10.tar.gz && tar -xvf libsodium-1.0.10.tar.gz && libsodium-1.0.10/configure && cd libsodium-1.0.10/ && make && sudo make install && cd ..; fi
-    - if [[ ! -e zeromq-4.1.4 ]]; then wget http://download.zeromq.org/zeromq-4.1.4.tar.gz && tar -xvf zeromq-4.1.4.tar.gz && zeromq-4.1.4/configure && cd zeromq-4.1.4/ && make && sudo make install; fi
+    - if [[ ! -e libsodium-1.0.10 ]]; then wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.10.tar.gz && tar -xvf libsodium-1.0.10.tar.gz && libsodium-1.0.10/configure && cd libsodium-1.0.10 && make && sudo make install && cd ..; fi
+    - if [[ ! -e zeromq-4.1.4 ]]; then wget http://download.zeromq.org/zeromq-4.1.4.tar.gz && tar -xvf zeromq-4.1.4.tar.gz && zeromq-4.1.4/configure && cd zeromq-4.1.4 && make && sudo make install; fi
     - sudo ldconfig
