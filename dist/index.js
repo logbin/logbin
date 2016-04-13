@@ -161,10 +161,13 @@ RealTime = function (_EventEmitter) {_inherits(RealTime, _EventEmitter);
 
     outbound.on('message', function (data) {
       var jsonData = JSON.parse(data.toString());
+
       if (jsonData.operation === 'SEND_LOG') {
-        _this.triggerLogReceived(jsonData);} else 
-      {
-        resolveDeferred(jsonData);}});
+        _this.triggerLogReceived(jsonData);}
+
+
+      if (jsonData.operation === 'SUBSCRIBE_ERROR') {
+        console.log('Subscription failed. Please check realtime settings.');}});
 
 
 
@@ -186,11 +189,16 @@ RealTime = function (_EventEmitter) {_inherits(RealTime, _EventEmitter);
 
     store) {
       this.store = store;
+      this.subscribe();
       return this;} }, { key: 'setFilter', value: function setFilter(
 
 
     filter) {
+      if (!filter.level) {
+        filter.level = 'silly';}
+
       this.filter = filter;
+      this.subscribe();
       return this;} }, { key: 'subscribe', value: function subscribe() 
 
 
@@ -214,11 +222,7 @@ RealTime = function (_EventEmitter) {_inherits(RealTime, _EventEmitter);
         filter: this.filter || defaultFilter };
 
 
-      var deferred = Q.defer();
-      refDeferredPairCache.set(request.ref, deferred);
-
-      outbound.send(JSON.stringify(request));
-      return deferred.promise;} }, { key: 'triggerLogReceived', value: function triggerLogReceived(
+      outbound.send(JSON.stringify(request));} }, { key: 'triggerLogReceived', value: function triggerLogReceived(
 
 
     logObject) {
@@ -228,10 +232,28 @@ RealTime = function (_EventEmitter) {_inherits(RealTime, _EventEmitter);
 
 function resolveDeferred(jsonResponse) {
   var deferred = refDeferredPairCache.get(jsonResponse.ref);
-  if (deferred) {
-    deferred.resolve(jsonResponse);
-    refDeferredPairCache.del(jsonResponse.ref);}}
+  var ack = jsonResponse.operation === 'SEND_ACK' || jsonResponse.operation === 'SUBSCRIBE_ACK';
 
+  if (deferred && ack) {
+    deferred.resolve(jsonResponse);}
+
+
+  if (deferred && !ack) {
+    deferred.reject(jsonResponse);}
+
+
+  refDeferredPairCache.del(jsonResponse.ref);}
+
+
+// Monitor on close server connection events
+inbound.on('close', function () {
+  console.log('Logger connection to server closed.');
+  inbound.close();});
+
+
+outbound.on('close', function () {
+  console.log('Realtime connection to server closed.');
+  inbound.close();});
 
 
 // Handle 'on expire' events of node-cache elements
@@ -244,6 +266,8 @@ refDeferredPairCache.on('expired', function (ref, deferred) {
 
 
 process.on('SIGINT', function () {
+  inbound.close();
+  outbound.close();
   process.exit();});
 
 

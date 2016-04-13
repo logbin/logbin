@@ -55,11 +55,6 @@ describe( 'Testing Realtime Logstream API', () => {
     assert.equal( JSON.stringify( realtime.filter ), JSON.stringify( newFilter ) );
   } );
 
-  it( 'should return a resolved promise on subscribe method', function *() {
-    let result = yield realtime.subscribe();
-    assert.equal( result.operation, 'SUBSCRIBE_ACK' );
-  } );
-
   // For testing purposes, we send a log from dummy server
   // to client. The promise returned should be resolved
   // on realtime.on( 'log' ) event.

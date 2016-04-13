@@ -26,6 +26,7 @@ zapSocket.bindSync('inproc://zeromq.zap.01');
 // Start a dummy inbound server
 var router = zmq.socket('router');
 var uri = 'tcp://127.0.0.1:5555';
+
 // jscs: disable
 router.plain_server = 1;
 // jscs: enable

@@ -161,10 +161,13 @@ class RealTime extends EventEmitter {
 
     outbound.on( 'message', ( data ) => {
       let jsonData = JSON.parse( data.toString() );
+
       if ( jsonData.operation === 'SEND_LOG' ) {
         this.triggerLogReceived( jsonData );
-      } else {
-        resolveDeferred( jsonData );
+      }
+
+      if ( jsonData.operation === 'SUBSCRIBE_ERROR' ) {
+        console.log( 'Subscription failed. Please check realtime settings.' );
       }
     } );
 
@@ -186,11 +189,16 @@ class RealTime extends EventEmitter {
 
   setStore( store ) {
     this.store = store;
+    this.subscribe();
     return this;
   }
 
   setFilter( filter ) {
+    if ( !filter.level ) {
+      filter.level = 'silly';
+    }
     this.filter = filter;
+    this.subscribe();
     return this;
   }
 
@@ -214,11 +222,7 @@ class RealTime extends EventEmitter {
       filter: this.filter || defaultFilter
     };
 
-    let deferred = Q.defer();
-    refDeferredPairCache.set( request.ref, deferred );
-
     outbound.send( JSON.stringify( request ) );
-    return deferred.promise;
   }
 
   triggerLogReceived( logObject ) {
@@ -228,11 +232,29 @@ class RealTime extends EventEmitter {
 
 function resolveDeferred ( jsonResponse ) {
   let deferred = refDeferredPairCache.get( jsonResponse.ref );
-  if ( deferred ) {
+  let ack = jsonResponse.operation === 'SEND_ACK' || jsonResponse.operation === 'SUBSCRIBE_ACK';
+
+  if ( deferred && ack ) {
     deferred.resolve( jsonResponse );
-    refDeferredPairCache.del( jsonResponse.ref );
   }
+
+  if ( deferred && !ack ) {
+    deferred.reject( jsonResponse );
+  }
+
+  refDeferredPairCache.del( jsonResponse.ref );
 }
+
+// Monitor on close server connection events
+inbound.on( 'close', () => {
+  console.log( 'Logger connection to server closed.' );
+  inbound.close();
+} );
+
+outbound.on( 'close', () => {
+  console.log( 'Realtime connection to server closed.' );
+  inbound.close();
+} );
 
 // Handle 'on expire' events of node-cache elements
 refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
@@ -244,6 +266,8 @@ refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
 } );
 
 process.on( 'SIGINT', () => {
+  inbound.close();
+  outbound.close();
   process.exit();
 } );
 
