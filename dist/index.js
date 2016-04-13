@@ -1,7 +1,5 @@
 'use strict';var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {return typeof obj;} : function (obj) {return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;};var _createClass = function () {function defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}return function (Constructor, protoProps, staticProps) {if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;};}();function _possibleConstructorReturn(self, call) {if (!self) {throw new ReferenceError("this hasn't been initialised - super() hasn't been called");}return call && (typeof call === "object" || typeof call === "function") ? call : self;}function _inherits(subClass, superClass) {if (typeof superClass !== "function" && superClass !== null) {throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}
 
-var password = 'EkjFpCW0x';
-
 var clientConnector = require('./lib/clientConnector.js');
 var _ = require('lodash');
 var dateFormat = require('dateformat');
@@ -23,17 +21,19 @@ Logger = function () {
 
   function Logger(opts) {_classCallCheck(this, Logger);
 
+    if (!opts.token) {
+      throw new Error('Token field should not be empty.');}
+
+
     this.store = opts.store;
     this.pscope = opts.scope || 'server';
     this.level = opts.level || 'info';
-    this.token = opts.token || password;
+    this.token = opts.token;
     this.transports = opts.transports;
     this.requestTTL = opts.requestTTL || 5;
 
     // jscs: disable
-    if (!opts.noPassword) {
-      inbound.plain_password = this.token;}
-
+    inbound.plain_password = this.token;
     // jscs: enable
     inbound.connect(opts.uri || 'tcp://127.0.0.1:5555');
 
@@ -171,12 +171,14 @@ RealTime = function (_EventEmitter) {_inherits(RealTime, _EventEmitter);
     _this.store = opts.store;
     _this.filter = opts.filter;
     _this.uri = opts.uri || 'tcp://127.0.0.1:5556';
-    _this.token = opts.token || password;
+    _this.token = opts.token;
+
+    if (!opts.token) {
+      throw new Error('Token field should not be empty.');}
+
 
     // jscs: disable
-    if (!opts.noPassword) {
-      outbound.plain_password = _this.token;}
-
+    outbound.plain_password = _this.token;
     // jscs: enable
     outbound.connect(_this.uri);
     _this.subscribe();return _this;}_createClass(RealTime, [{ key: 'setStore', value: function setStore(
