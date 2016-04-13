@@ -1,7 +1,5 @@
 'use strict';
 
-const password = 'EkjFpCW0x';
-
 var clientConnector = require( './lib/clientConnector.js' );
 var _ = require( 'lodash' );
 var dateFormat = require( 'dateformat' );
@@ -23,17 +21,19 @@ class Logger {
 
   constructor( opts ) {
 
+    if ( !opts.token ) {
+      throw new Error( 'Token field should not be empty.' );
+    }
+
     this.store = opts.store;
     this.pscope = opts.scope || 'server';
     this.level = opts.level || 'info';
-    this.token = opts.token || password;
+    this.token = opts.token;
     this.transports = opts.transports;
     this.requestTTL = opts.requestTTL || 5;
 
     // jscs: disable
-    if ( !opts.noPassword ) {
-      inbound.plain_password = this.token;
-    }
+    inbound.plain_password = this.token;
     // jscs: enable
     inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
 
@@ -171,12 +171,14 @@ class RealTime extends EventEmitter {
     this.store = opts.store;
     this.filter = opts.filter;
     this.uri = opts.uri || 'tcp://127.0.0.1:5556';
-    this.token = opts.token || password;
+    this.token = opts.token;
+
+    if ( !opts.token ) {
+      throw new Error( 'Token field should not be empty.' );
+    }
 
     // jscs: disable
-    if ( !opts.noPassword ) {
-      outbound.plain_password = this.token;
-    }
+    outbound.plain_password = this.token;
     // jscs: enable
     outbound.connect( this.uri );
     this.subscribe();

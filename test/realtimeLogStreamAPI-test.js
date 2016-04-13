@@ -10,6 +10,10 @@ var uri = 'tcp://127.0.0.1:5556';
 
 // Start dummy outbound server
 var router = zmq.socket( 'router' );
+
+// jscs: disable
+router.plain_server = 1;
+// jscs: enable
 router.bind( uri );
 
 var clientIdentity;
@@ -25,8 +29,8 @@ router.on( 'message', ( envelope, data ) => {
 
 describe( 'Testing Realtime Logstream API', () => {
   var config = {
-    noPassword: true,
     uri: uri,
+    token: 'EkjFpCW0x',
     store: 'test',
     filter: {
       level: 'error'

@@ -4,10 +4,32 @@ require( 'co-mocha' );
 
 var assert = require( 'assert' );
 var zmq = require( 'zmq' );
+var zmqzap = require( 'zmq-zap' );
+var ZAP = zmqzap.ZAP;
+var PlainMechanism = zmqzap.PlainMechanism;
+var zap = new ZAP();
+
+// Start authentication layer
+zap.use( new PlainMechanism( ( data, callback ) => {
+  callback( null, true ); // Just grant all connections
+} ) );
+
+var zapSocket = zmq.socket( 'router' );
+zapSocket.on( 'message', function() {
+  zap.authenticate( arguments, ( err, response ) => {
+    if ( err ) { console.error( 'Error:', err ); }
+    if ( response ) { zapSocket.send( response ); }
+  } );
+} );
+zapSocket.bindSync( 'inproc://zeromq.zap.01' );
 
 // Start a dummy inbound server
 var router = zmq.socket( 'router' );
 var uri = 'tcp://127.0.0.1:5555';
+
+// jscs: disable
+router.plain_server = 1;
+// jscs: enable
 router.bind( uri );
 
 router.on( 'message', ( envelope, data ) => {
@@ -27,6 +49,7 @@ describe( 'Testing Logger API', () => {
   var loggerConfig = {
     noPassword: true,
     uri: uri,
+    token: 'EkjFpCW0x',
     transports: [ 'tcp' ],
     store: 'clint',
     scope: 'server',
