@@ -10,6 +10,10 @@ var uri = 'tcp://127.0.0.1:5556';
 
 // Start dummy outbound server
 var router = zmq.socket( 'router' );
+
+// jscs: disable
+router.plain_server = 1;
+// jscs: enable
 router.bind( uri );
 
 var clientIdentity;
@@ -26,6 +30,7 @@ router.on( 'message', ( envelope, data ) => {
 describe( 'Testing Realtime Logstream API', () => {
   var config = {
     uri: uri,
+    token: 'EkjFpCW0x',
     store: 'test',
     filter: {
       level: 'error'
@@ -48,11 +53,6 @@ describe( 'Testing Realtime Logstream API', () => {
 
     assert.equal( realtime.store, 'testing' );
     assert.equal( JSON.stringify( realtime.filter ), JSON.stringify( newFilter ) );
-  } );
-
-  it( 'should return a resolved promise on subscribe method', function *() {
-    let result = yield realtime.subscribe();
-    assert.equal( result.operation, 'SUBSCRIBE_ACK' );
   } );
 
   // For testing purposes, we send a log from dummy server

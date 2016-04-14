@@ -1,13 +1,12 @@
 'use strict';
 
-const password = 'EkjFpCW0x';
-
 var clientConnector = require( './lib/clientConnector.js' );
 var _ = require( 'lodash' );
 var dateFormat = require( 'dateformat' );
 var Q = require( 'q' );
 var NodeCache = require( 'node-cache' );
 var UUID = require( 'uuid-js' );
+var prettyjson = require( 'prettyjson' );
 var levels = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 var refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
 
@@ -22,16 +21,21 @@ class Logger {
 
   constructor( opts ) {
 
-    // jscs: disable
-    if ( opts.password ) {
-       inbound.plain_password = password;
+    if ( !opts.token ) {
+      throw new Error( 'Token field should not be empty.' );
     }
-    // jscs: enable
-    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
+
     this.store = opts.store;
     this.pscope = opts.scope || 'server';
     this.level = opts.level || 'info';
+    this.token = opts.token;
+    this.transports = opts.transports;
     this.requestTTL = opts.requestTTL || 5;
+
+    // jscs: disable
+    inbound.plain_password = this.token;
+    // jscs: enable
+    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
 
     _( levels ).forEach( ( level ) => {
       Logger.prototype[ level ] = function( input ) {
@@ -106,7 +110,7 @@ class Logger {
     }
 
     let partialPayload = {
-      '@pscope': this.scope,
+      '@pscope': this.pscope,
       '@level': level,
       '@timestamp': dateFormat( 'mmmm dd HH:MM:ss' )
     };
@@ -129,11 +133,22 @@ class Logger {
     refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
 
     if ( shouldLog ) {
-      inbound.send( JSON.stringify( request ) );
+      if ( this.transports.indexOf( 'console' ) !== -1 ) {
+        console.log( JSON.stringify( request ) );
+      }
+      if ( this.transports.indexOf( 'tcp' ) !== -1 ) {
+        inbound.send( JSON.stringify( request ) );
+      }
     }
 
     return deferred.promise;
   }
+
+  //Implement realtime instance here
+  realtime(  opts ) {
+    return instanceOfRealtime( opts );
+  }
+
 }
 
 // Realtime Object
@@ -143,33 +158,52 @@ var outbound = clientConnector.outbound;
 class RealTime extends EventEmitter {
   constructor( opts ) {
     super();
+
     outbound.on( 'message', ( data ) => {
       let jsonData = JSON.parse( data.toString() );
 
       if ( jsonData.operation === 'SEND_LOG' ) {
         this.triggerLogReceived( jsonData );
-      } else {
-        resolveDeferred( jsonData );
+      }
+
+      if ( jsonData.operation === 'SUBSCRIBE_ERROR' ) {
+        console.log( 'Subscription failed. Please check realtime settings.' );
       }
     } );
+
     this.store = opts.store;
     this.filter = opts.filter;
     this.uri = opts.uri || 'tcp://127.0.0.1:5556';
+    this.token = opts.token;
 
+    if ( !opts.token ) {
+      throw new Error( 'Token field should not be empty.' );
+    }
+
+    // jscs: disable
+    outbound.plain_password = this.token;
+    // jscs: enable
     outbound.connect( this.uri );
+    this.subscribe();
   }
 
   setStore( store ) {
     this.store = store;
+    this.subscribe();
     return this;
   }
 
   setFilter( filter ) {
+    if ( !filter.level ) {
+      filter.level = 'silly';
+    }
     this.filter = filter;
+    this.subscribe();
     return this;
   }
 
   subscribe() {
+
     if ( !this.store ) {
       throw new Error( 'Store field should not be empty.' );
     }
@@ -188,10 +222,7 @@ class RealTime extends EventEmitter {
       filter: this.filter || defaultFilter
     };
 
-    let deferred = Q.defer();
-    refDeferredPairCache.set( request.ref, deferred );
     outbound.send( JSON.stringify( request ) );
-    return deferred.promise;
   }
 
   triggerLogReceived( logObject ) {
@@ -201,11 +232,29 @@ class RealTime extends EventEmitter {
 
 function resolveDeferred ( jsonResponse ) {
   let deferred = refDeferredPairCache.get( jsonResponse.ref );
-  if ( deferred ) {
+  let ack = jsonResponse.operation === 'SEND_ACK' || jsonResponse.operation === 'SUBSCRIBE_ACK';
+
+  if ( deferred && ack ) {
     deferred.resolve( jsonResponse );
-    refDeferredPairCache.del( jsonResponse.ref );
   }
+
+  if ( deferred && !ack ) {
+    deferred.reject( jsonResponse );
+  }
+
+  refDeferredPairCache.del( jsonResponse.ref );
 }
+
+// Monitor on close server connection events
+inbound.on( 'close', () => {
+  console.log( 'Logger connection to server closed.' );
+  inbound.close();
+} );
+
+outbound.on( 'close', () => {
+  console.log( 'Realtime connection to server closed.' );
+  inbound.close();
+} );
 
 // Handle 'on expire' events of node-cache elements
 refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
@@ -217,6 +266,8 @@ refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
 } );
 
 process.on( 'SIGINT', () => {
+  inbound.close();
+  outbound.close();
   process.exit();
 } );
 
@@ -228,7 +279,12 @@ function instanceOfRealtime ( opts ) {
   return new RealTime( opts );
 }
 
+function prettyDisplay ( data ) {
+  console.log( prettyjson.render( data ) + '\n---------------------------------------' );
+}
+
 module.exports = {
   logger: instanceOfLogger,
-  realtime: instanceOfRealtime
+  realtime: instanceOfRealtime,
+  prettyDisplay
 };
