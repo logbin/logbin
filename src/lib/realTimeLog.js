@@ -1,19 +1,19 @@
 'use strict';
 
-var clientConnector = require( './clientConnector.js' );
-var logDisplay = require( './logDisplay.js' );
-var parseArgs = require( 'minimist' );
-var prettyjson = require( 'prettyjson' );
-var subscriber = clientConnector.subscriber;
-var reqClient = clientConnector.reqClient;
+let clientConnector = require( './clientConnector.js' );
+let logDisplay = require( './logDisplay.js' );
+let parseArgs = require( 'minimist' );
+let prettyjson = require( 'prettyjson' );
+let subscriber = clientConnector.subscriber;
+let reqClient = clientConnector.reqClient;
 
 clientConnector.connectToOutbound();
 clientConnector.connectToOutboundReqClient();
-var args = parseArgs( process.argv );
+let args = parseArgs( process.argv );
 
-var subscriptionStrings = logDisplay.getSubscriptionStrings( args.store, args.scope, args.level );
+let subscriptionStrings = logDisplay.getSubscriptionStrings( args.store, args.scope, args.level );
 console.log( subscriptionStrings );
-var requestToSetFilter = {
+let requestToSetFilter = {
   operation: 'set',
   dataFilter: {
     mode: 'all'

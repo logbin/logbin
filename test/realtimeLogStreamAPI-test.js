@@ -2,21 +2,21 @@
 require( 'babel-polyfill' );
 require( 'co-mocha' );
 
-var assert = require( 'assert' );
-var zmq = require( 'zmq' );
-var Q = require( 'q' );
+let assert = require( 'assert' );
+let zmq = require( 'zmq' );
+let Q = require( 'q' );
 
-var uri = 'tcp://127.0.0.1:5556';
+let uri = 'tcp://127.0.0.1:5556';
 
 // Start dummy outbound server
-var router = zmq.socket( 'router' );
+let router = zmq.socket( 'router' );
 
 // jscs: disable
 router.plain_server = 1;
 // jscs: enable
 router.bind( uri );
 
-var clientIdentity;
+let clientIdentity;
 router.on( 'message', ( envelope, data ) => {
   clientIdentity = envelope;
   let jsonRequest = JSON.parse( data.toString() );
@@ -28,7 +28,7 @@ router.on( 'message', ( envelope, data ) => {
 } );
 
 describe( 'Testing Realtime Logstream API', () => {
-  var config = {
+  let config = {
     uri: uri,
     token: 'EkjFpCW0x',
     store: 'test',
@@ -37,7 +37,7 @@ describe( 'Testing Realtime Logstream API', () => {
     }
   };
 
-  var realtime = require( '../dist/index.js' ).realtime( config );
+  let realtime = require( '../dist/index.js' ).realtime( config );
 
   it( 'should support chaining of non-returning methods', function() {
     let newFilter = {
@@ -62,7 +62,7 @@ describe( 'Testing Realtime Logstream API', () => {
   // of filters yet. It is only to test whether
   // the eventemitter fires on log event when the server
   // sends a log to the client
-  var deferred = Q.defer();
+  let deferred = Q.defer();
   it( 'should trigger the realtime.on log event', function *() {
     let anyLog = {
       operation: 'SEND_LOG',
