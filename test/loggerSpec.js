@@ -70,42 +70,42 @@ describe( 'Testing Logger API', () => {
   } );
 
   it( 'should send an error and return a promise', function *() {
-    let result = yield logger.error( 'I am sending an error.' );
+    let result = yield logger.ack().error( 'I am sending an error.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a warn and return a promise', function *() {
-    let result = yield logger.warn( 'I am sending a warn.' );
+    let result = yield logger.ack().warn( 'I am sending a warn.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send an info and return a promise', function *() {
-    let result = yield logger.info( 'I am sending a log.' );
+    let result = yield logger.ack().info( 'I am sending a log.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a verbose and return a promise', function *() {
-    let result = yield logger.verbose( 'I am sending a verbose.' );
+    let result = yield logger.ack().verbose( 'I am sending a verbose.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a debug and return a promise', function *() {
-    let result = yield logger.debug( 'I am sending a debug.' );
+    let result = yield logger.ack().debug( 'I am sending a debug.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a silly and return a promise', function *() {
-    let result = yield logger.silly( 'I am sending a silly.' );
+    let result = yield logger.ack().silly( 'I am sending a silly.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a log with object data', function *() {
-    let result = yield logger.log( 'error', { name: 'Clint', age: '23' } );
+    let result = yield logger.ack().log( 'error', { name: 'Clint', age: '23' } );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a log with single parameter passed', function *() {
-    let result = yield logger.log( 'This is just a single argument' );
+    let result = yield logger.ack().log( 'This is just a single argument' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
