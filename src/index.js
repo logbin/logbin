@@ -65,6 +65,11 @@ class Logger {
     return this;
   }
 
+  ack() {
+    this._ack = true;
+    return this;
+  }
+
   log( ...params ) {
     let shouldLog = true;
     let level = this.level;
@@ -137,6 +142,7 @@ class Logger {
         console.log( JSON.stringify( request ) );
       }
       if ( this.transports.indexOf( 'tcp' ) !== -1 ) {
+        request.ref = this._ack ? request.ref : null;
         inbound.send( JSON.stringify( request ) );
       }
     }
