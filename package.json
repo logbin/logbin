@@ -1,8 +1,8 @@
 {
-  "name": "logbin.io-client",
+  "name": "logbin",
   "version": "0.0.1",
   "description": "NodeJS client for logbin.io",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "build": "babel src --out-dir dist",
     "build-test": "babel test --out-dir test-build",
