@@ -43,12 +43,12 @@ Initializing the Logger API requires configuration settings.
 
 ```javascript
 var Logbin = require( 'logbin' );
- 
+
 var config = {
   store: 'storename',
   token: 'validtoken'
 };
- 
+
 var logger = Logbin.logger( config );
 ```
 
@@ -83,16 +83,16 @@ Sending a log to the server returns a promise.
 
 ```javascript
 var co = require( 'co' );
- 
+
 co( function *() {
   yield [
-    logger.error( 'An error log.' ),                            // Send a log categorized by levels
-    logger.warn( 'Warning log.' ),
-    logger.info( { name: 'Vukqiawich', action: 'login' } ),     // You can also send an object
-    logger.verbose( 'Over medication is o-verbose.' ),
-    logger.debug( 'Log for debugging.' ),
-    logger.silly( 'Silly me.' ),
-    logger.log( 'info', 'This is an information.' );            // Or you can specify the level instead
+    logger.ack().error( 'An error log.' ),                            // Send a log categorized by levels
+    logger.ack().warn( 'Warning log.' ),
+    logger.ack().info( { name: 'Vukqiawich', action: 'login' } ),     // You can also send an object
+    logger.ack().verbose( 'Over medication is o-verbose.' ),
+    logger.ack().debug( 'Log for debugging.' ),
+    logger.ack().silly( 'Silly me.' ),
+    logger.ack().log( 'info', 'This is an information.' );            // Or you can specify the level instead
   ];
 } ).catch( error => console.log( error ) );                      // Catch reason of rejection
 ```
@@ -105,12 +105,12 @@ Initializing the Real-time API also requires configuration settings.
 
 ```javascript
 var Logbin = require( 'logbin' );
- 
+
 var config = {
   store: 'storename',
   token: 'validtoken'
 };
- 
+
 var logger = Logbin.realtime( config );
 ```
 
@@ -141,9 +141,9 @@ var config = {
     }
   }
 };
- 
+
 var logger = Logbin.realtime( config );
- 
+
 // You can also set it using a setter method.
 // To receive logs with levels error, warn, or info with login action
 var newFilter = {
@@ -153,7 +153,7 @@ var newFilter = {
   }
 };
 logger.setFilter( newFilter );
- 
+
 // You can also leave the fields object blank
 var filterWithNoFieldMatching = {
   level: 'info'
