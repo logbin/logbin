@@ -1,13 +1,15 @@
 'use strict';
-require( 'babel-polyfill' );
-require( 'co-mocha' );
 
-let assert = require( 'assert' );
-let zmq = require( 'zmq' );
-let zmqzap = require( 'zmq-zap' );
-let ZAP = zmqzap.ZAP;
-let PlainMechanism = zmqzap.PlainMechanism;
-let zap = new ZAP();
+import 'babel-polyfill';
+import 'co-mocha';
+import assert	from 'assert';
+import zmq	from 'zmq';
+import zmqzap	from 'zmq-zap';
+import index	from '../dist/index.js';
+
+let ZAP = zmqzap.ZAP,
+  PlainMechanism = zmqzap.PlainMechanism,
+  zap = new ZAP();
 
 // Start authentication layer
 zap.use( new PlainMechanism( ( data, callback ) => {
@@ -24,8 +26,8 @@ zapSocket.on( 'message', function() {
 zapSocket.bindSync( 'inproc://zeromq.zap.01' );
 
 // Start a dummy inbound server
-let router = zmq.socket( 'router' );
-let uri = 'tcp://127.0.0.1:5555';
+let router = zmq.socket( 'router' ),
+  uri = 'tcp://127.0.0.1:5555';
 
 // jscs: disable
 router.plain_server = 1;
@@ -56,7 +58,7 @@ describe( 'Testing Logger API', () => {
     requestTTL: 5000
   };
 
-  let logger = require( '../dist/index.js' ).logger( loggerConfig );
+  let logger = index.logger( loggerConfig );
 
   it( 'should support chaining for non-returning methods', function() {
     logger
