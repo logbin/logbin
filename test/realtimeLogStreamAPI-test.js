@@ -1,10 +1,9 @@
 'use strict';
-require( 'babel-polyfill' );
-require( 'co-mocha' );
 
-let assert = require( 'assert' );
-let zmq = require( 'zmq' );
-let Q = require( 'q' );
+import assert	from 'assert';
+import zmq	from 'zmq';
+import Q	from 'q';
+import index	from '../dist/index.js';
 
 let uri = 'tcp://127.0.0.1:5556';
 
@@ -37,7 +36,7 @@ describe( 'Testing Realtime Logstream API', () => {
     }
   };
 
-  let realtime = require( '../dist/index.js' ).realtime( config );
+  let realtime = index.realtime( config );
 
   it( 'should support chaining of non-returning methods', function() {
     let newFilter = {
