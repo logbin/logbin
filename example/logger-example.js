@@ -1,6 +1,6 @@
 'use strict';
 
-var Logger = require( '../dist/index.js' );
+var Logger = require( '../index.js' );
 var co = require( 'co' );
 
 var config = {
@@ -19,10 +19,6 @@ var opts = {
 };
 
 var myLogger = new Logger.logger( opts );
-
-Logger.realtime( config ).on( 'log', ( data ) => {
-  console.log( data );
-} );
 
 setInterval( () => {
   myLogger.ack().log( 'error', { name: 'Jefferson D. Miralles', wants:'anything' } ).then( console.log );
