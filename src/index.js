@@ -277,10 +277,6 @@ process.on( 'SIGINT', () => {
   process.exit();
 } );
 
-function instanceOfLogger ( opts ) {
-  return new Logger( opts );
-}
-
 function instanceOfRealtime ( opts ) {
   return new RealTime( opts );
 }
@@ -290,7 +286,7 @@ function prettyDisplay ( data ) {
 }
 
 module.exports = {
-  logger: instanceOfLogger,
+  logger: Logger,
   realtime: instanceOfRealtime,
   prettyDisplay
 };

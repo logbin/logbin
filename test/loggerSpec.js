@@ -58,7 +58,7 @@ describe( 'Testing Logger API', () => {
     requestTTL: 5000
   };
 
-  let logger = index.logger( loggerConfig );
+  let logger = new index.logger( loggerConfig );
 
   it( 'should support chaining for non-returning methods', function() {
     logger
