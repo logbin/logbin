@@ -5,7 +5,7 @@ import 'co-mocha';
 import assert	from 'assert';
 import zmq	from 'zmq';
 import zmqzap	from 'zmq-zap';
-import index	from '../dist/index.js';
+import index	from '../index.js';
 
 let ZAP = zmqzap.ZAP,
   PlainMechanism = zmqzap.PlainMechanism,
