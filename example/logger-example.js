@@ -3,19 +3,21 @@
 var Logger = require( '../index.js' );
 var co = require( 'co' );
 
+/*
 var config = {
-  uri: 'tcp://127.0.0.1:5556',
-  token: 'EkjFpCW0x',
-  store: 'test',
-  filter: {
-    level: 'info'
-  }
-};
+   uri: 'tcp://127.0.0.1:5556',
+   token: 'EkjFpCW0x',
+   store: 'test',
+   filter: {
+     level: 'info'
+   }
+ };
+ */
 
 var opts = {
   store: 'test',
   token:'EkjFpCW0x',
-  transports:[ 'tcp' ]
+  console: true
 };
 
 var myLogger = new Logger.logger( opts );
