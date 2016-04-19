@@ -1,13 +1,15 @@
 'use strict';
-require( 'babel-polyfill' );
-require( 'co-mocha' );
 
-let assert = require( 'assert' );
-let zmq = require( 'zmq' );
-let zmqzap = require( 'zmq-zap' );
-let ZAP = zmqzap.ZAP;
-let PlainMechanism = zmqzap.PlainMechanism;
-let zap = new ZAP();
+import 'babel-polyfill';
+import 'co-mocha';
+import assert	from 'assert';
+import zmq	from 'zmq';
+import zmqzap	from 'zmq-zap';
+import index	from '../dist/index.js';
+
+let ZAP = zmqzap.ZAP,
+  PlainMechanism = zmqzap.PlainMechanism,
+  zap = new ZAP();
 
 // Start authentication layer
 zap.use( new PlainMechanism( ( data, callback ) => {
@@ -24,8 +26,8 @@ zapSocket.on( 'message', function() {
 zapSocket.bindSync( 'inproc://zeromq.zap.01' );
 
 // Start a dummy inbound server
-let router = zmq.socket( 'router' );
-let uri = 'tcp://127.0.0.1:5555';
+let router = zmq.socket( 'router' ),
+  uri = 'tcp://127.0.0.1:5555';
 
 // jscs: disable
 router.plain_server = 1;
@@ -56,7 +58,7 @@ describe( 'Testing Logger API', () => {
     requestTTL: 5000
   };
 
-  let logger = require( '../dist/index.js' ).logger( loggerConfig );
+  let logger = new index.logger( loggerConfig );
 
   it( 'should support chaining for non-returning methods', function() {
     logger
@@ -70,42 +72,42 @@ describe( 'Testing Logger API', () => {
   } );
 
   it( 'should send an error and return a promise', function *() {
-    let result = yield logger.error( 'I am sending an error.' );
+    let result = yield logger.ack().error( 'I am sending an error.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a warn and return a promise', function *() {
-    let result = yield logger.warn( 'I am sending a warn.' );
+    let result = yield logger.ack().warn( 'I am sending a warn.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send an info and return a promise', function *() {
-    let result = yield logger.info( 'I am sending a log.' );
+    let result = yield logger.ack().info( 'I am sending a log.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a verbose and return a promise', function *() {
-    let result = yield logger.verbose( 'I am sending a verbose.' );
+    let result = yield logger.ack().verbose( 'I am sending a verbose.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a debug and return a promise', function *() {
-    let result = yield logger.debug( 'I am sending a debug.' );
+    let result = yield logger.ack().debug( 'I am sending a debug.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a silly and return a promise', function *() {
-    let result = yield logger.silly( 'I am sending a silly.' );
+    let result = yield logger.ack().silly( 'I am sending a silly.' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a log with object data', function *() {
-    let result = yield logger.log( 'error', { name: 'Clint', age: '23' } );
+    let result = yield logger.ack().log( 'error', { name: 'Clint', age: '23' } );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
   it( 'should send a log with single parameter passed', function *() {
-    let result = yield logger.log( 'This is just a single argument' );
+    let result = yield logger.ack().log( 'This is just a single argument' );
     assert.equal( result.operation, 'SEND_ACK' );
   } );
 
