@@ -2,7 +2,7 @@
   "name": "logbin",
   "version": "0.0.1",
   "description": "NodeJS client for logbin.io",
-  "main": "./dist/index.js",
+  "main": "index.js",
   "scripts": {
     "build": "babel src --out-dir dist",
     "build-test": "babel test --out-dir test-build",
@@ -82,6 +82,7 @@
     "zmq-zap": "0.0.2"
   },
   "devDependencies": {
+    "babel-plugin-add-module-exports": "^0.1.2",
     "co-mocha": "^1.1.2",
     "jscs": "^2.11.0",
     "jshint": "^2.9.1",
@@ -91,6 +92,9 @@
     "presets": [
       "babel-polyfill",
       "babel-preset-es2015"
+    ],
+    "plugins": [
+      "babel-plugin-add-module-exports"
     ],
     "retainLines": true
   }
