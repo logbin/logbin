@@ -1,20 +1,17 @@
 'use strict';
-require( 'babel-polyfill' );
-require( 'co-mocha' );
 
-let assert = require( 'assert' );
-let zmq = require( 'zmq' );
-let Q = require( 'q' );
+import assert         from 'assert';
+import zmq            from 'zmq';
+import Promise        from 'bluebird';
+import { LogStream }  from '../index';
+import 'babel-polyfill';
+import 'co-mocha';
 
 let uri = 'tcp://127.0.0.1:5556';
 
 // Start dummy outbound server
 let router = zmq.socket( 'router' );
-
-// jscs: disable
-router.plain_server = 1;
-// jscs: enable
-router.bind( uri );
+router[ 'plain_server' ] = 1;
 
 let clientIdentity;
 router.on( 'message', ( envelope, data ) => {
@@ -27,19 +24,19 @@ router.on( 'message', ( envelope, data ) => {
   router.send( [ envelope, JSON.stringify( response ) ] );
 } );
 
+router.bind( uri );
+
 describe( 'Testing Realtime Logstream API', () => {
   let config = {
     uri: uri,
     token: 'EkjFpCW0x',
-    store: 'test',
-    filter: {
-      level: 'error'
-    }
+    store: 'test'
   };
 
-  let realtime = require( '../dist/index.js' ).realtime( config );
+  let realtime = new LogStream( config );
 
-  it( 'should support chaining of non-returning methods', function() {
+  it( 'filter value should change from default to new input', function() {
+    let defaultFilter = realtime.filter;
     let newFilter = {
       level: 'info',
       fields: {
@@ -47,11 +44,9 @@ describe( 'Testing Realtime Logstream API', () => {
         age: 23
       }
     };
-    realtime
-      .setStore( 'testing' )
-      .setFilter( newFilter );
+    realtime.filter = newFilter;
 
-    assert.equal( realtime.store, 'testing' );
+    assert.equal( JSON.stringify( defaultFilter ), JSON.stringify( { level: 'silly' } ) );
     assert.equal( JSON.stringify( realtime.filter ), JSON.stringify( newFilter ) );
   } );
 
@@ -62,7 +57,12 @@ describe( 'Testing Realtime Logstream API', () => {
   // of filters yet. It is only to test whether
   // the eventemitter fires on log event when the server
   // sends a log to the client
-  let deferred = Q.defer();
+  let deferred = Promise.pending();
+
+  realtime.on( 'log', ( logObject ) => {
+    deferred.resolve( logObject );
+  } );
+
   it( 'should trigger the realtime.on log event', function *() {
     let anyLog = {
       operation: 'SEND_LOG',
@@ -75,7 +75,7 @@ describe( 'Testing Realtime Logstream API', () => {
     };
 
     let result = yield routerSendToClient( anyLog );
-    assert.equal( result.operation, 'SEND_LOG' );
+    assert.equal( JSON.stringify( result ), JSON.stringify( anyLog.payload ) );
   } );
 
   function routerSendToClient ( data ) {
@@ -87,7 +87,4 @@ describe( 'Testing Realtime Logstream API', () => {
     return deferred.promise;
   }
 
-  realtime.on( 'log', ( logObject ) => {
-    deferred.resolve( logObject );
-  } );
 } );
