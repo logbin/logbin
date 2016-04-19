@@ -1,16 +1,16 @@
 'use strict';
 
-var clientConnector = require( './lib/clientConnector.js' );
-var _ = require( 'lodash' );
-var dateFormat = require( 'dateformat' );
-var Q = require( 'q' );
-var NodeCache = require( 'node-cache' );
-var UUID = require( 'uuid-js' );
-var prettyjson = require( 'prettyjson' );
-var levels = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
-var refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
+let clientConnector = require( './lib/clientConnector.js' );
+let _ = require( 'lodash' );
+let dateFormat = require( 'dateformat' );
+let Q = require( 'q' );
+let NodeCache = require( 'node-cache' );
+let UUID = require( 'uuid-js' );
+let prettyjson = require( 'prettyjson' );
+let levels = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
+let refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
 
-var inbound = clientConnector.inbound;
+let inbound = clientConnector.inbound;
 
 inbound.on( 'message', ( response ) => {
   let jsonResponse = JSON.parse( response.toString() );
@@ -69,7 +69,7 @@ class Logger {
     let shouldLog = true;
     let level = this.level;
     let input;
-    var deferred = Q.defer();
+    let deferred = Q.defer();
 
     switch ( params.length ) {
       case 0: {
@@ -152,8 +152,8 @@ class Logger {
 }
 
 // Realtime Object
-var EventEmitter = require( 'events' );
-var outbound = clientConnector.outbound;
+let EventEmitter = require( 'events' );
+let outbound = clientConnector.outbound;
 
 class RealTime extends EventEmitter {
   constructor( opts ) {
