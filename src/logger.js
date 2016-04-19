@@ -7,7 +7,6 @@ let dateFormat = require( 'dateformat' );
 let Q = require( 'q' );
 let NodeCache = require( 'node-cache' );
 let UUID = require( 'uuid-js' );
-let prettyjson = require( 'prettyjson' );
 let levels = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 let refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
 
@@ -131,7 +130,7 @@ class Logger {
 
     let request = {
       ref: UUID.create( 1 ).toString(),
-      operation: 'send',
+      operation: 'SEND',
       store: this.store,
       payload: fullPayload
     };
@@ -151,90 +150,6 @@ class Logger {
     return deferred.promise;
   }
 
-  //Implement realtime instance here
-  realtime(  opts ) {
-    return instanceOfRealtime( opts );
-  }
-
-}
-
-// Realtime Object
-let EventEmitter = require( 'events' );
-let outbound = clientConnector.outbound;
-
-class RealTime extends EventEmitter {
-  constructor( opts ) {
-    super();
-
-    outbound.on( 'message', ( data ) => {
-      let jsonData = JSON.parse( data.toString() );
-
-      if ( jsonData.operation === 'SEND_LOG' ) {
-        this.triggerLogReceived( jsonData );
-      }
-
-      if ( jsonData.operation === 'SUBSCRIBE_ERROR' ) {
-        console.log( 'Subscription failed. Please check realtime settings.' );
-      }
-    } );
-
-    this.store = opts.store;
-    this.filter = opts.filter;
-    this.uri = opts.uri || 'tcp://127.0.0.1:5556';
-    this.token = opts.token;
-
-    if ( !opts.token ) {
-      throw new Error( 'Token field should not be empty.' );
-    }
-
-    // jscs: disable
-    outbound.plain_password = this.token;
-    // jscs: enable
-    outbound.connect( this.uri );
-    this.subscribe();
-  }
-
-  setStore( store ) {
-    this.store = store;
-    this.subscribe();
-    return this;
-  }
-
-  setFilter( filter ) {
-    if ( !filter.level ) {
-      filter.level = 'silly';
-    }
-    this.filter = filter;
-    this.subscribe();
-    return this;
-  }
-
-  subscribe() {
-
-    if ( !this.store ) {
-      throw new Error( 'Store field should not be empty.' );
-    }
-
-    // If no filter is defined,
-    // default filter is set to
-    // receive all logs
-    let defaultFilter = {
-      level: 'silly'
-    };
-
-    let request = {
-      ref: UUID.create( 1 ).toString(),
-      operation: 'subscribe',
-      store: this.store,
-      filter: this.filter || defaultFilter
-    };
-
-    outbound.send( JSON.stringify( request ) );
-  }
-
-  triggerLogReceived( logObject ) {
-    this.emit( 'log', logObject );
-  }
 }
 
 function resolveDeferred ( jsonResponse ) {
@@ -258,11 +173,6 @@ inbound.on( 'close', () => {
   inbound.close();
 } );
 
-outbound.on( 'close', () => {
-  console.log( 'Realtime connection to server closed.' );
-  inbound.close();
-} );
-
 // Handle 'on expire' events of node-cache elements
 refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
   let error = {
@@ -274,20 +184,9 @@ refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
 
 process.on( 'SIGINT', () => {
   inbound.close();
-  outbound.close();
   process.exit();
 } );
 
-function instanceOfRealtime ( opts ) {
-  return new RealTime( opts );
-}
-
-function prettyDisplay ( data ) {
-  console.log( prettyjson.render( data ) + '\n---------------------------------------' );
-}
-
 module.exports = {
-  logger: Logger,
-  realtime: instanceOfRealtime,
-  prettyDisplay
+  logger: Logger
 };
