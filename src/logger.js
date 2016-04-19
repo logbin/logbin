@@ -130,7 +130,7 @@ class Logger {
 
     let request = {
       ref: UUID.create( 1 ).toString(),
-      operation: 'send',
+      operation: 'SEND',
       store: this.store,
       payload: fullPayload
     };
