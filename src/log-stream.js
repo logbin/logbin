@@ -15,14 +15,13 @@ export default class LogStream extends EventEmitter {
 
     this._opts = _.merge( {
       uri: 'tcp://127.0.0.1:5556',
-      filter: {
-        level: 'silly'
-      }
+      level: 'silly',
+      levels: LogStream.DEFAULT_LOG_LEVELS,
+      schema: {}
     }, opts || {} );
 
     this._socket = zmq.socket( 'dealer' );
 
-    // jscs: disable
     this._socket[ 'plain_password' ] = this._opts.token;
 
     this._socket.on( 'message', ( data ) => {
@@ -43,20 +42,41 @@ export default class LogStream extends EventEmitter {
       ref: uuid.create( 1 ).toString(),
       operation: 'SUBSCRIBE',
       store: this._opts.store,
-      filter: this._opts.filter
+      level: this._opts.level,
+      schema: this._opts.schema
     };
 
     this._socket.send( JSON.stringify( request ) );
   }
 
-  set filter( filter ) {
-    this._opts.filter = _.merge( {
-      level: 'silly'
-    }, filter || {} );
+  set schema( schema ) {
+    assert( typeof schema === 'object', `'schema' should be an object` );
+    this._opts.schema = schema;
     this._subscribe();
   }
 
-  get filter() {
-    return this._opts.filter;
+  get schema() {
+    return this._opts.schema;
+  }
+
+  set level( level ) {
+    assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
+    this._opts.level = level;
+    this._subscribe();
+  }
+
+  get level() {
+    return this._opts.level;
+  }
+
+  static get DEFAULT_LOG_LEVELS() {
+    return [
+      'error',
+      'warn',
+      'info',
+      'verbose',
+      'debug',
+      'silly'
+    ];
   }
 }

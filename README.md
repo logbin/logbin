@@ -125,7 +125,7 @@ var config = {
   token: 'validtoken'
 };
 
-var realtime = new LogStream( config );
+var logstream = new LogStream( config );
 ```
 
 ###Options
@@ -136,10 +136,20 @@ Configuration of the realtime API comes with the following options:
 | *store* | Store name from where the logs are received. This name must be lowercase, cannot begin with an underscore, and cannot contain commas. | required |
 | *token* | Used for authentication which will be provided to you. | required |
 | *uri* | Address of the server. When not specified, default address will be used. | optional |
-| *filter* | An object that will specify the filtering of logs. If unspecified, all logs will be received. | optional |
+| *level* | (default = 'silly' ) Severity level of logs to be received. | optional |
+| *schema* | Object that follows JSON Schema draft 4 Standard. This will define the log filter. If not provided, you will receive all logs that is in range of the set severity level. | optional |
+
+###Log levels
+You can also set the severity of logs you want to receive on the run.
+
+####Example:
+
+```javascript
+  logstream.level = 'warn'; // You will receive logs with severity levels 'error' and 'warn'.
+```
 
 ###Log Filtering
-You can specify filters to receive the logs you want.
+You can specify a filter to receive the logs you want by setting a schema. Logbin implements [JSON Schema draft 4 standard](http://json-schema.org/) for the logstream filter schema.
 
 ####Example:
 
@@ -148,31 +158,30 @@ You can specify filters to receive the logs you want.
 var config = {
   store: 'storename',
   token: 'validtoken',
-  filter: {
-    level: 'error',                 // The severity level of logs you want to receive
-    fields: {
-      '@message': 'An error log.',  // When you want to receive logs with exact matching strings
+  level: 'info',  // You will receive 'error', 'warn', and 'info',
+  schema: {
+    type: 'object',
+    properties: {
+      id: { type: 'number' },
+      fname: { type: 'string', pattern: '^Christopher$' },
+      age: { type: 'number', maximum: 23 }
     }
   }
 };
 
-var realtime = new LogStream( config );
+var logstream = new LogStream( config );
 
 // You can also set it using the setter method.
 // To receive logs with levels error, warn, or info with login action
-var newFilter = {
-  level: 'info',
-  fields: {
-    action: 'login'
+var newSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'number' },
+    fname: { type: 'string', pattern: '^Margie$' },
+    age: { type: 'number', maximum: 23 }
   }
 };
-realtime.filter = newFilter;
-
-// You can also leave the fields object blank
-var filterWithNoFieldMatching = {
-  level: 'info'
-};
-realtime.filter = filterWithNoFieldMatching;
+logstream.schema = newSchema;
 ```
 
 ###On Log Event
@@ -181,5 +190,5 @@ You can listen to the event when a log is received from the server.
 ####Example:
 
 ```javascript
-realtime.on( 'log', data => console.log( data ) ); // data will be in object form for easier manipulation
+logstream.on( 'log', data => console.log( data ) ); // data will be in object form for easier manipulation
 ```

@@ -4,26 +4,7 @@ import 'babel-polyfill';
 import 'co-mocha';
 import assert	from 'assert';
 import zmq	from 'zmq';
-import zmqzap	from 'zmq-zap';
-import index	from '../index.js';
-
-let ZAP = zmqzap.ZAP,
-  PlainMechanism = zmqzap.PlainMechanism,
-  zap = new ZAP();
-
-// Start authentication layer
-zap.use( new PlainMechanism( ( data, callback ) => {
-  callback( null, true ); // Just grant all connections
-} ) );
-
-let zapSocket = zmq.socket( 'router' );
-zapSocket.on( 'message', function() {
-  zap.authenticate( arguments, ( err, response ) => {
-    if ( err ) { console.error( 'Error:', err ); }
-    if ( response ) { zapSocket.send( response ); }
-  } );
-} );
-zapSocket.bindSync( 'inproc://zeromq.zap.01' );
+import index  from '../index.js';
 
 // Start a dummy inbound server
 let router = zmq.socket( 'router' ),
