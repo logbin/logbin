@@ -5,7 +5,7 @@ import 'co-mocha';
 import assert	from 'assert';
 import zmq	from 'zmq';
 import zmqzap	from 'zmq-zap';
-import index	from '../dist/index.js';
+import index	from '../index.js';
 
 let ZAP = zmqzap.ZAP,
   PlainMechanism = zmqzap.PlainMechanism,
@@ -63,11 +63,9 @@ describe( 'Testing Logger API', () => {
   it( 'should support chaining for non-returning methods', function() {
     logger
       .setStore( 'teststore' )
-      .setScope( 'app' )
       .setRequestTTL( 1 );
 
     assert.equal( logger.store, 'teststore' );
-    assert.equal( logger.scope, 'app' );
     assert.equal( logger.requestTTL, 1 );
   } );
 
@@ -135,4 +133,5 @@ describe( 'Testing Logger API', () => {
       assert.equal( error.code, 'EMISSINGARG' );
     } );
   } );
+
 } );

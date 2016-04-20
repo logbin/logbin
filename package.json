@@ -4,8 +4,8 @@
   "description": "NodeJS client for logbin.io",
   "main": "index.js",
   "scripts": {
-    "build": "babel src --out-dir dist",
-    "build-test": "babel test --out-dir test-build",
+    "build": "rm -rf dist && babel src --out-dir dist",
+    "build-test": "rm -rf test-build && babel test --out-dir test-build",
     "jshint": "jshint src/ test/",
     "jscs": "jscs src/ test/",
     "test": "mocha -b --recursive test-build/"
