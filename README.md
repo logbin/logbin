@@ -102,7 +102,7 @@ co( function *() {
   yield [
     logger.ack().error( 'An error log.' ),                            // Send a log categorized by levels
     logger.ack().warn( 'Warning log.' ),
-    logger.ack().info( { name: 'Vukqiawich', action: 'login' } ),     // You can also send an object
+    logger.ack().info( { name: 'M. Saavedra', action: 'login' } ),     // You can also send an object
     logger.ack().verbose( 'Over medication is o-verbose.' ),
     logger.ack().debug( 'Log for debugging.' ),
     logger.ack().silly( 'Silly me.' ),
@@ -111,11 +111,11 @@ co( function *() {
 } ).catch( error => console.log( error ) );                      // Catch reason of rejection
 ```
 
-##Real-time API
-Real-time API is used to receive logs from your node applications in real-time.
+##LogStream API
+LogStream API is used to receive logs from your node applications in real-time.
 
 ###Initialization
-Initializing the Real-time API also requires configuration settings.
+Initializing the LogStream API also requires configuration settings.
 
 ```javascript
 var LogStream = require( 'logbin' ).LogStream;
@@ -129,7 +129,7 @@ var logstream = new LogStream( config );
 ```
 
 ###Options
-Configuration of the realtime API comes with the following options:
+Configuration of the LogStream API comes with the following options:
 
 | Option | Definition | Required |
 |:------:| ---------- |:--------:|
@@ -154,7 +154,7 @@ You can specify a filter to receive the logs you want by setting a schema. Logbi
 ####Example:
 
 ```javascript
-// You can set the filters in the configuration settings
+// You can set the filter in the configuration settings
 var config = {
   store: 'storename',
   token: 'validtoken',
@@ -172,7 +172,7 @@ var config = {
 var logstream = new LogStream( config );
 
 // You can also set it using the setter method.
-// To receive logs with levels error, warn, or info with login action
+// To receive logs with levels error, warn, or info that has an id with 'number' type, fname with value 'Margie', and age <= 23.
 var newSchema = {
   type: 'object',
   properties: {
