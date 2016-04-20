@@ -35,19 +35,26 @@ describe( 'Testing Realtime Logstream API', () => {
 
   let realtime = new LogStream( config );
 
-  it( 'filter value should change from default to new input', function() {
-    let defaultFilter = realtime.filter;
-    let newFilter = {
-      level: 'info',
-      fields: {
-        name: 'Christopher',
-        age: 23
+  it( 'schema value should change from default to new input', function() {
+    let defaultSchema = realtime.schema;
+    let newSchema = {
+      type: 'object',
+      properties: {
+        age: { type: 'number', maximum: 23 }
       }
     };
-    realtime.filter = newFilter;
+    realtime.schema = newSchema;
 
-    assert.equal( JSON.stringify( defaultFilter ), JSON.stringify( { level: 'silly' } ) );
-    assert.equal( JSON.stringify( realtime.filter ), JSON.stringify( newFilter ) );
+    assert.equal( JSON.stringify( defaultSchema ), JSON.stringify( {} ) );
+    assert.equal( JSON.stringify( realtime.schema ), JSON.stringify( newSchema ) );
+  } );
+
+  it( 'level value should change from default to new input', function() {
+    let defaultLevel = realtime.level;
+    realtime.level = 'error';
+
+    assert.equal( defaultLevel, 'silly' );
+    assert.equal( realtime.level, 'error' );
   } );
 
   // For testing purposes, we send a log from dummy server
@@ -68,7 +75,7 @@ describe( 'Testing Realtime Logstream API', () => {
       operation: 'SEND_LOG',
       payload: {
         '@message': 'Just a usual log.',
-        '@pscope': 'server',
+        '@scope': 'server',
         '@level': 'silly',
         '@timestamp': 'April 11 16:33:30'
       }
