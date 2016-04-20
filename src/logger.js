@@ -2,6 +2,7 @@
 //Seperate logger to log-stream later
 'use strict';
 let clientConnector = require( './lib/clientConnector.js' );
+let assert = require( 'assert' );
 let _ = require( 'lodash' );
 let dateFormat = require( 'dateformat' );
 let Q = require( 'q' );
@@ -21,15 +22,16 @@ class Logger {
 
   constructor( opts ) {
 
-    if ( !opts.token ) {
-      throw new Error( 'Token field should not be empty.' );
+    if ( !opts.console ) {
+      assert( opts.store, `'store' is not specified` );
+      assert( opts.token, `'token' is not specified` );
     }
 
     this.store = opts.store;
     this.pscope = opts.scope || 'server';
     this.level = opts.level || 'info';
     this.token = opts.token;
-    this.transports = opts.transports;
+    this.console = opts.console || false;
     this.requestTTL = opts.requestTTL || 5;
 
     // jscs: disable
@@ -50,7 +52,7 @@ class Logger {
     return this;
   }
 
-  setScope( scope ) {
+  scope( scope ) {
     this.scope = scope;
     return this;
   }
@@ -138,10 +140,10 @@ class Logger {
     refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
 
     if ( shouldLog ) {
-      if ( this.transports.indexOf( 'console' ) !== -1 ) {
+      if ( this.console ) {
         console.log( JSON.stringify( request ) );
       }
-      if ( this.transports.indexOf( 'tcp' ) !== -1 ) {
+      if ( !this.console ) {
         request.ref = this._ack ? request.ref : null;
         inbound.send( JSON.stringify( request ) );
       }

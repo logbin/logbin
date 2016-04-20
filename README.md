@@ -76,6 +76,23 @@ logger
   .setRequestTTL( 3 );          // Set the standard ttl of requests in seconds
 ```
 
+###Transports
+Instance of a logbin can have configured transports.
+
+####Example:
+
+```javascript
+var Logbin = require( 'logbin' );
+
+var config = {
+  store: 'storename',
+  token: 'validtoken',
+  console: true
+};
+
+var logger = Logbin.logger( config );
+```
+
 ###Promise
 Sending a log to the server returns a promise.
 
