@@ -102,7 +102,7 @@ co( function *() {
   yield [
     logger.ack().error( 'An error log.' ),                            // Send a log categorized by levels
     logger.ack().warn( 'Warning log.' ),
-    logger.ack().info( { name: 'Vukqiawich', action: 'login' } ),     // You can also send an object
+    logger.ack().info( { name: 'M. Saavedra', action: 'login' } ),     // You can also send an object
     logger.ack().verbose( 'Over medication is o-verbose.' ),
     logger.ack().debug( 'Log for debugging.' ),
     logger.ack().silly( 'Silly me.' ),
@@ -112,10 +112,10 @@ co( function *() {
 ```
 
 ##LogStream API
-Real-time API is used to receive logs from your node applications in real-time.
+LogStream API is used to receive logs from your node applications in real-time.
 
 ###Initialization
-Initializing the Real-time API also requires configuration settings.
+Initializing the LogStream API also requires configuration settings.
 
 ```javascript
 var LogStream = require( 'logbin' ).LogStream;
@@ -129,7 +129,7 @@ var logstream = new LogStream( config );
 ```
 
 ###Options
-Configuration of the realtime API comes with the following options:
+Configuration of the LogStream API comes with the following options:
 
 | Option | Definition | Required |
 |:------:| ---------- |:--------:|
