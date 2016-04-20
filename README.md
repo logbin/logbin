@@ -65,15 +65,12 @@ Logger settings comes with the following options:
 | *requestTTL* | ( default: 5 ) The standard ttl of requests in seconds when no response is received from the server. | optional |
 
 ###Method Chaining
-Each non-returning method returns the logger instance to enable chaining.
+.ack() method is chainable.
 
 ####Example:
 
 ```javascript
-logger
-  .setStore( 'anotherstore' )   // Set a new store value
-  .setScope( 'app' )            // Set a new scope
-  .setRequestTTL( 3 );          // Set the standard ttl of requests in seconds
+logger.ack().error( 'An error log.' )
 ```
 
 ###Transports
@@ -94,7 +91,7 @@ var logger = Logbin.logger( config );
 ```
 
 ###Promise
-Sending a log to the server returns a promise.
+Sending a log with .ack() method returns a promise.
 
 ####Example:
 
@@ -121,14 +118,14 @@ Real-time API is used to receive logs from your node applications in real-time.
 Initializing the Real-time API also requires configuration settings.
 
 ```javascript
-var Logbin = require( 'logbin' );
+var LogStream = require( 'logbin' ).LogStream;
 
 var config = {
   store: 'storename',
   token: 'validtoken'
 };
 
-var logger = Logbin.realtime( config );
+var realtime = new LogStream( config );
 ```
 
 ###Options
@@ -159,41 +156,30 @@ var config = {
   }
 };
 
-var logger = Logbin.realtime( config );
+var realtime = new LogStream( config );
 
-// You can also set it using a setter method.
+// You can also set it using the setter method.
 // To receive logs with levels error, warn, or info with login action
 var newFilter = {
   level: 'info',
   fields: {
-    action: 'login' // You can filter against objects you sent from your applications
+    action: 'login'
   }
 };
-logger.setFilter( newFilter );
+realtime.filter = newFilter;
 
 // You can also leave the fields object blank
 var filterWithNoFieldMatching = {
   level: 'info'
 };
-logger.setFilter( filterWithNoFieldMatching );
-```
-
-###Method Chaining
-Each non-returning method returns the realtime instance to enable chaining.
-
-####Example:
-
-```javascript
-logger
-  .setStore( 'newStore' )           // Change the current store
-  .setFilter( { level: 'info' } );  // Change to new filter
+realtime.filter = filterWithNoFieldMatching;
 ```
 
 ###On Log Event
-You can also listen to the event when a log is received from the server.
+You can listen to the event when a log is received from the server.
 
 ####Example:
 
 ```javascript
-logger.on( 'log', data => console.log( data ) ); // data will be in object form for easier manipulation
+realtime.on( 'log', data => console.log( data ) ); // data will be in object form for easier manipulation
 ```
