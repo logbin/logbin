@@ -111,7 +111,7 @@ co( function *() {
 } ).catch( error => console.log( error ) );                      // Catch reason of rejection
 ```
 
-##Real-time API
+##LogStream API
 Real-time API is used to receive logs from your node applications in real-time.
 
 ###Initialization
@@ -154,7 +154,7 @@ You can specify a filter to receive the logs you want by setting a schema. Logbi
 ####Example:
 
 ```javascript
-// You can set the filters in the configuration settings
+// You can set the filter in the configuration settings
 var config = {
   store: 'storename',
   token: 'validtoken',
@@ -172,7 +172,7 @@ var config = {
 var logstream = new LogStream( config );
 
 // You can also set it using the setter method.
-// To receive logs with levels error, warn, or info with login action
+// To receive logs with levels error, warn, or info that has an id with 'number' type, fname with value 'Margie', and age <= 23.
 var newSchema = {
   type: 'object',
   properties: {
