@@ -46,8 +46,8 @@ describe( 'Testing Logger API', () => {
       .setStore( 'teststore' )
       .setRequestTTL( 1 );
 
-    assert.equal( logger.store, 'teststore' );
-    assert.equal( logger.requestTTL, 1 );
+    assert.equal( logger._opts.store, 'teststore' );
+    assert.equal( logger._opts.requestTTL, 1 );
   } );
 
   it( 'should send an error and return a promise', function *() {
