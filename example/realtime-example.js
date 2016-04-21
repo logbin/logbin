@@ -1,17 +1,20 @@
-var Logger = require( '../dist/index.js' );
+'use strict';
 
+var Logbin = require( '../index' );
 var config = {
-  uri: 'tcp://127.0.0.1:5556',
-  token: 'EkjFpCW0x',
   store: 'test',
-  filter: {
-    level: 'info',
-    fields: {
-      what: 'anything'
+  token: 'EkjFpCW0x',
+  level: 'info',
+  schema: {
+    type: 'object',
+    properties: {
+      id: { type: 'number' },
+      fname: { type: 'string', pattern: '^Christopher$' },
+      age: { type: 'number', maximum: 25 }
     }
   }
 };
 
-Logger.realtime( config ).on( 'log', function( data ) {
-  Logger.prettyDisplay( data );
-} );
+var logstream = new Logbin.LogStream( config );
+
+logstream.on( 'log', data => console.log( data ) );
