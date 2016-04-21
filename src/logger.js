@@ -27,15 +27,17 @@ class Logger {
       assert( opts.token, `'token' is not specified` );
     }
 
-    this.store = opts.store;
-    this.pscope = opts.scope || 'server';
-    this.level = opts.level || 'info';
-    this.token = opts.token;
-    this.console = opts.console || false;
-    this.requestTTL = opts.requestTTL || 5;
+    this._opts = {
+      store: opts.store,
+      scope: opts.scope || 'server',
+      level: opts.level || 'info',
+      token: opts.token,
+      console: opts.console || false,
+      requestTTL: opts.requestTTL || 5
+    };
 
     // jscs: disable
-    inbound.plain_password = this.token;
+    inbound.plain_password = this._opts.token;
     // jscs: enable
     inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
 
@@ -48,22 +50,24 @@ class Logger {
   }
 
   setStore( store ) {
-    this.store = store;
+    this._opts.store = store;
     return this;
   }
 
   scope( scope ) {
-    this.scope = scope;
-    return this;
+    let logbin = new Logger( _.merge( this._opts, {
+      scope
+    } ) );
+    return logbin;
   }
 
   setLevel( level ) {
-    this.level = level;
+    this._opts.level = level;
     return this;
   }
 
   setRequestTTL( sec ) {
-    this.requestTTL = sec;
+    this._opts.requestTTL = sec;
     return this;
   }
 
@@ -74,7 +78,7 @@ class Logger {
 
   log( ...params ) {
     let shouldLog = true;
-    let level = this.level;
+    let level = this._opts.level;
     let input;
     let deferred = Q.defer();
 
@@ -117,7 +121,7 @@ class Logger {
     }
 
     let partialPayload = {
-      '@pscope': this.pscope,
+      '@pscope': this._opts.scope,
       '@level': level,
       '@timestamp': dateFormat( 'mmmm dd HH:MM:ss' )
     };
@@ -133,17 +137,17 @@ class Logger {
     let request = {
       ref: UUID.create( 1 ).toString(),
       operation: 'SEND',
-      store: this.store,
+      store: this._opts.store,
       payload: fullPayload
     };
 
     refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
 
     if ( shouldLog ) {
-      if ( this.console ) {
+      if ( this._opts.console ) {
         console.log( JSON.stringify( request ) );
       }
-      if ( !this.console ) {
+      if ( !this._opts.console ) {
         request.ref = this._ack ? request.ref : null;
         inbound.send( JSON.stringify( request ) );
       }
