@@ -110,6 +110,9 @@ export default class Logger {
    * @return {?Promise}
    */
   _log( data ) {
+
+    let deferred;
+
     if ( this._opts.console ) {
       console.log( data );
     } else {
@@ -121,11 +124,8 @@ export default class Logger {
       };
 
       if ( this._ack ) {
-        let deferred = new Promise.pending();
+        deferred = new Promise.pending();
         promiseCache.set( request.ref, deferred, this._opts.timeout );
-        this._ack = false;
-        this._propSocket.send( JSON.stringify( request ) );
-        return deferred.promise;
       }
 
       this._propSocket.send( JSON.stringify( request ) );
@@ -133,6 +133,10 @@ export default class Logger {
     }
 
     this._ack = false;
+
+    if ( deferred ) {
+      return deferred.promise;
+    }
   }
 
   /**
