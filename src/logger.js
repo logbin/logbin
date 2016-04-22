@@ -1,198 +1,204 @@
-//Logger class in here
-//Seperate logger to log-stream later
 'use strict';
-let clientConnector = require( './lib/clientConnector.js' );
-let assert = require( 'assert' );
-let _ = require( 'lodash' );
-let dateFormat = require( 'dateformat' );
-let Q = require( 'q' );
-let NodeCache = require( 'node-cache' );
-let UUID = require( 'uuid-js' );
-let levels = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
-let refDeferredPairCache = new NodeCache( { stdTTL: 5, checkperiod: 1 } );
 
-let inbound = clientConnector.inbound;
+import assert       from 'assert';
+import _            from 'lodash';
+import zmq          from 'zmq';
+import { inspect }  from 'util';
+import Promise      from 'bluebird';
+import NodeCache    from 'node-cache';
+import uuid         from 'uuid-js';
 
-inbound.on( 'message', ( response ) => {
-  let jsonResponse = JSON.parse( response.toString() );
-  resolveDeferred( jsonResponse );
+let promiseCache = new NodeCache( {
+  stdTTL: 5,
+  checkperiod: 1,
+  useClones: false
 } );
 
-class Logger {
+promiseCache.on( 'expired', ( ref, deferred ) => {
+  deferred.reject( 'No server response.' );
+} );
 
+/**
+ * @access public
+ */
+export default class Logger {
+
+  /**
+   * Create a new instance of Logger
+   * @constructor
+   * @access public
+   * @param  {object}  opts
+   * @param  {boolean} opts.console
+   * @param  {string}  opts.store
+   * @param  {string}  opts.scope
+   * @param  {string}  opts.token
+   * @param  {number}  opts.timeout
+   */
   constructor( opts ) {
-
     if ( !opts.console ) {
       assert( opts.store, `'store' is not specified` );
       assert( opts.token, `'token' is not specified` );
     }
 
-    this._opts = {
-      store: opts.store,
-      scope: opts.scope || 'server',
-      level: opts.level || 'info',
-      token: opts.token,
-      console: opts.console || false,
-      requestTTL: opts.requestTTL || 5
-    };
+    this._opts = _.merge( {
+      timeout: 5,
+      scope: 'global',
+      levels: Logger.DEFAULT_LOG_LEVELS
+    }, opts || {} );
 
-    // jscs: disable
-    inbound.plain_password = this._opts.token;
-    // jscs: enable
-    inbound.connect( opts.uri || 'tcp://127.0.0.1:5555' );
+    let self = this;
 
-    _( levels ).forEach( ( level ) => {
-      Logger.prototype[ level ] = function( input ) {
-        return this.log( level, input );
+    _.each( this._opts.levels, level => {
+      this[ level ] = function( input ) {
+        return self.log( level, input );
       };
     } );
 
+    this._propSocket = this._socket;
+
   }
 
-  setStore( store ) {
-    this._opts.store = store;
-    return this;
+  /**
+   * Log
+   * @access public
+   * @param  {string} level
+   * @param  {...*}
+   */
+  log( level ) {
+    assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
+
+    let data = {
+      '@level': level,
+      '@scope': this._opts.scope,
+      '@timestamp': new Date().toISOString()
+    };
+
+    let object = {};
+
+    _.times( arguments.length - 1, ( index ) => {
+      let arg = arguments[ index + 1 ];
+      if ( _.isPlainObject( arg ) ) {
+        _.merge( object, arg );
+      } else {
+        if ( !object[ '@message' ] ) {
+          object[ '@message' ] = [];
+        } else {
+          object[ '@message' ] = [ object[ '@message' ] ];
+        }
+        object[ '@message' ].push( ( typeof arg === 'string' ) ? arg : inspect( arg ) );
+        object[ '@message' ] = object[ '@message' ].join( ' ' );
+      }
+    } );
+
+    _.merge( data, object );
+
+    return this._log( data );
   }
 
-  scope( scope ) {
-    let logbin = new Logger( _.merge( this._opts, {
-      scope
-    } ) );
-    return logbin;
-  }
-
-  setLevel( level ) {
-    this._opts.level = level;
-    return this;
-  }
-
-  setRequestTTL( sec ) {
-    this._opts.requestTTL = sec;
-    return this;
-  }
-
+  /**
+   * Indicate that the next log operation should return a Promise
+   * @access public
+   */
   ack() {
     this._ack = true;
     return this;
   }
 
-  log( ...params ) {
-    let shouldLog = true;
-    let level = this._opts.level;
-    let input;
-    let deferred = Q.defer();
+  /**
+   * Sends the log data into the transport
+   * @access private
+   * @return {?Promise}
+   */
+  _log( data ) {
+    if ( this._opts.console ) {
+      console.log( data );
+    } else {
+      let request = {
+        ref: this._ack ? uuid.create( 1 ).toString() : undefined,
+        operation: 'SEND',
+        store: this._opts.store,
+        payload: data
+      };
 
-    switch ( params.length ) {
-      case 0: {
-        let error = {
-          code: 'EMISSINGARG',
-          message: 'Missing log arguments'
-        };
-
-        deferred.reject( error );
-        break;
+      if ( this._ack ) {
+        let deferred = new Promise.pending();
+        promiseCache.set( request.ref, deferred, this._opts.timeout );
+        this._ack = false;
+        this._propSocket.send( JSON.stringify( request ) );
+        return deferred.promise;
       }
 
-      case 1: {
-        input = params[ 0 ];
-        break;
-      }
+      this._propSocket.send( JSON.stringify( request ) );
 
-      case 2: {
-
-        if ( levels.indexOf( params[ 0 ] ) !== -1 ) {
-          level = params[ 0 ];
-          input = params[ 1 ];
-        } else {
-          let error = {
-            code: 'ELEVELINVALID',
-            message: 'Invalid level: ' + level,
-            input: input,
-            validLevels: levels
-          };
-          deferred.reject( error );
-
-          // Prevents the client side from crashing the server
-          shouldLog = false;
-        }
-        break;
-      }
-      default:
     }
 
-    let partialPayload = {
-      '@pscope': this._opts.scope,
-      '@level': level,
-      '@timestamp': dateFormat( 'mmmm dd HH:MM:ss' )
-    };
-
-    let fullPayload;
-    if ( typeof( input ) === 'string' ) {
-      partialPayload[ '@message' ] = input;
-      fullPayload = partialPayload;
-    } else if ( typeof( input ) === 'object' ) {
-      fullPayload = _.merge( partialPayload, input );
-    }
-
-    let request = {
-      ref: UUID.create( 1 ).toString(),
-      operation: 'SEND',
-      store: this._opts.store,
-      payload: fullPayload
-    };
-
-    refDeferredPairCache.set( request.ref, deferred, this.requestTTL );
-
-    if ( shouldLog ) {
-      if ( this._opts.console ) {
-        console.log( JSON.stringify( request ) );
-      }
-      if ( !this._opts.console ) {
-        request.ref = this._ack ? request.ref : null;
-        inbound.send( JSON.stringify( request ) );
-      }
-    }
-
-    return deferred.promise;
+    this._ack = false;
   }
 
+  /**
+   * Gets the socket connection
+   * @access protected
+   */
+  get _socket() {
+    if ( !this._opts.console && !this._propSocket ) {
+      let socket = zmq.socket( 'dealer' );
+      socket[ 'plain_password' ] = this._opts.token;
+
+      socket.on( 'message', data => {
+        this._resolvePromise( JSON.parse( data.toString() ) );
+      } );
+
+      socket.connect( this._opts.uri || 'tcp://127.0.0.1:5555' );
+      this._propSocket = socket;
+    }
+    return this._propSocket;
+  }
+
+  /**
+   * Resolve pending promise
+   * @access protected
+   * @param { object } data
+   */
+  _resolvePromise( data ) {
+    let deferred = promiseCache.get( data.ref );
+
+    if ( deferred && data.operation === 'SEND_ACK' ) {
+      deferred.resolve( true );
+      promiseCache.del( data.ref );
+    }
+
+  }
+
+  /**
+   * Sets the socket connection
+   * @access protected
+   */
+  set _socket( socket ) {
+    this._propSocket = socket;
+  }
+
+  /**
+   * Creates a new instance of Logger with the specified scope
+   * @param  {string} scope
+   * @return {Logger}
+   */
+  scope( scope ) {
+    let logger = new Logger( _.merge( this._opts, {
+      scope
+    } ) );
+
+    logger._propSocket = this._socket;
+    return logger;
+  }
+
+  static get DEFAULT_LOG_LEVELS() {
+    return [
+      'error',
+      'warn',
+      'info',
+      'verbose',
+      'debug',
+      'silly'
+    ];
+  }
 }
-
-function resolveDeferred ( jsonResponse ) {
-  let deferred = refDeferredPairCache.get( jsonResponse.ref );
-  let ack = jsonResponse.operation === 'SEND_ACK' || jsonResponse.operation === 'SUBSCRIBE_ACK';
-
-  if ( deferred && ack ) {
-    deferred.resolve( jsonResponse );
-  }
-
-  if ( deferred && !ack ) {
-    deferred.reject( jsonResponse );
-  }
-
-  refDeferredPairCache.del( jsonResponse.ref );
-}
-
-// Monitor on close server connection events
-inbound.on( 'close', () => {
-  console.log( 'Logger connection to server closed.' );
-  inbound.close();
-} );
-
-// Handle 'on expire' events of node-cache elements
-refDeferredPairCache.on( 'expired', ( ref, deferred ) => {
-  let error = {
-    code: 'ENORESPONSE',
-    message: 'No response from server.'
-  };
-  deferred.reject( error );
-} );
-
-process.on( 'SIGINT', () => {
-  inbound.close();
-  process.exit();
-} );
-
-module.exports = {
-  logger: Logger
-};

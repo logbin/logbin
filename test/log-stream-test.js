@@ -64,13 +64,16 @@ describe( 'Testing Realtime Logstream API', () => {
   // of filters yet. It is only to test whether
   // the eventemitter fires on log event when the server
   // sends a log to the client
-  let deferred = Promise.pending();
+  let deferred = new Promise.pending();
 
   realtime.on( 'log', ( logObject ) => {
-    deferred.resolve( logObject );
+    setTimeout( () => {
+      deferred.resolve( logObject );
+    }, 1000 );
   } );
 
   it( 'should trigger the realtime.on log event', function *() {
+    this.timeout( 5000 );
     let anyLog = {
       operation: 'SEND_LOG',
       payload: {
