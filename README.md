@@ -41,7 +41,7 @@ Logger API is used to send logs from your node applications to the server.
 ###Initialization
 Initializing the Logger API requires configuration settings.
 
-```javascript
+```javascriptl
 var Logbin = require( 'logbin' );
 
 var config = {
@@ -49,7 +49,7 @@ var config = {
   token: 'validtoken'
 };
 
-var logger = Logbin.logger( config );
+var logger = Logbin( config );
 ```
 
 ###Options
@@ -94,7 +94,7 @@ var config = {
   console: true
 };
 
-var logger = Logbin.logger( config );
+var logger = Logbin( config );
 ```
 
 ###Promise
