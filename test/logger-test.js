@@ -20,7 +20,7 @@ router.on( 'message', ( envelope, data ) => {
     };
 
     // For test purposes, do not send a response with this condition
-    if ( request.payload[ '@message' ] !== 'Do not send a response.' ) {
+    if ( request.payload[ '@message' ] !== `Do not send a response.` ) {
       router.send( [ envelope, JSON.stringify( response ) ] );
     }
   }
@@ -43,29 +43,29 @@ describe( 'Testing Logger API', () => {
   let logger = new Logger( loggerConfig );
 
   it( 'should return a promise when ack() is used.', function *() {
-    let result = yield logger.ack().error( 'I am sending an error.' );
+    let result = yield logger.ack().error( `I am sending an error.` );
     assert( result, `should be resolved` );
   } );
 
   it( 'should send a log with object data', function *() {
     return logger.ack().log( 'error', { name: 'Clint', age: '23' } )
-      .then( function fulfilled( result ) {
+      .then( ( result ) => {
         assert.equal( result, result );
       } );
   } );
 
   it( 'should return a server response failed', function *() {
     this.timeout( 7000 );
-    return logger.ack().info( 'Do not send a response.' ).then( function fulfilled( result ) {
-      throw new Error( 'Promise unexpectedly fulfilled. Result: ' + result );
-    }, function rejected( error ) {
+    return logger.ack().info( `Do not send a response.` ).then( ( result ) => {
+      throw new Error( `Promise unexpectedly fulfilled. Result: ${result}` );
+    }, ( error ) => {
       assert.equal( error, error );
     } );
   } );
 
   it( 'should return a new instance of logger', function *() {
     let tempLogger = logger.scope( 'temp' );
-    let result1 = yield tempLogger.ack().error( 'I am sending an error in scope temp.' );
+    let result1 = yield tempLogger.ack().error( `I am sending an error in scope temp.` );
     let result2 = yield tempLogger.ack().log( 'error', { name: 'Clint', age: '23' } );
     assert( result1, `should be resolved` );
     assert( result2, `should be resolved` );
