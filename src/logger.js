@@ -50,7 +50,7 @@ export default class Logger {
     let self = this;
 
     _.each( this._opts.levels, level => {
-      this[ level ] = function( input ) {
+      this[ level ] = ( input ) => {
         return self.log( level, input );
       };
     } );

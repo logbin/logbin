@@ -35,7 +35,7 @@ describe( 'Testing Realtime Logstream API', () => {
 
   let realtime = new LogStream( config );
 
-  it( 'schema value should change from default to new input', function() {
+  it( 'schema value should change from default to new input', () => {
     let defaultSchema = realtime.schema;
     let newSchema = {
       type: 'object',
@@ -49,7 +49,7 @@ describe( 'Testing Realtime Logstream API', () => {
     assert.equal( JSON.stringify( realtime.schema ), JSON.stringify( newSchema ) );
   } );
 
-  it( 'level value should change from default to new input', function() {
+  it( 'level value should change from default to new input', () => {
     let defaultLevel = realtime.level;
     realtime.level = 'error';
 
