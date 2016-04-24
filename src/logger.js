@@ -43,7 +43,8 @@ export default class Logger {
     this._opts = _.merge( {
       timeout: 5,
       scope: 'global',
-      levels: Logger.DEFAULT_LOG_LEVELS
+      levels: Logger.DEFAULT_LOG_LEVELS,
+      severity: 'info'
     }, opts || {} );
 
     let self = this;
@@ -64,8 +65,16 @@ export default class Logger {
    * @param  {string} level
    * @param  {...*}
    */
-  log( level ) {
-    assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
+  log( params ) {
+    let level = params;
+    let offset = 1;
+
+    if ( arguments.length == 1 ) {
+      offset = 0;
+      level = this._opts.severity;
+    } else if ( arguments.length > 1 ) {
+      assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
+    }
 
     let data = {
       '@level': level,
@@ -75,8 +84,8 @@ export default class Logger {
 
     let object = {};
 
-    _.times( arguments.length - 1, ( index ) => {
-      let arg = arguments[ index + 1 ];
+    _.times( arguments.length - offset, ( index ) => {
+      let arg = arguments[ index + offset ];
       if ( _.isPlainObject( arg ) ) {
         _.merge( object, arg );
       } else {
