@@ -44,19 +44,29 @@ export default class Logger {
       timeout: 5,
       scope: 'global',
       levels: Logger.DEFAULT_LOG_LEVELS,
-      severity: 'info'
+      level: 'info'
     }, opts || {} );
 
-    let self = this;
-
     _.each( this._opts.levels, level => {
-      this[ level ] = ( input ) => {
-        return self.log( level, input );
+      this[ level ] =  input  => {
+        return this.log( level, input );
       };
     } );
 
     this._propSocket = this._socket;
 
+  }
+
+  /*
+  * Getter / Setter for the logger level
+  */
+
+  get level() {
+    return this._opts.level;
+  }
+
+  set level( severity ) {
+    this._opts.level = severity;
   }
 
   /**
@@ -71,7 +81,7 @@ export default class Logger {
 
     if ( arguments.length == 1 ) {
       offset = 0;
-      level = this._opts.severity;
+      level = this._opts.level;
     } else if ( arguments.length > 1 ) {
       assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
     }
