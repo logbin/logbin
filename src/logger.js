@@ -57,6 +57,18 @@ export default class Logger {
 
   }
 
+  /*
+  * Getter / Setter for the logger level
+  */
+
+  get level() {
+    return this._opts.level;
+  }
+
+  set level( severity ) {
+    this._opts.level = severity;
+  }
+
   /**
    * Log
    * @access public
