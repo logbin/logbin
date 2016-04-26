@@ -9,3 +9,7 @@ var logger = new Logbin( {
 
 logger.log( 'Hello, this is a information.' );
 logger.log( { name: 'Voltron', age: 99 } );
+
+//Set default level to error
+logger.level = 'error';
+logger.log( 'An Error Occurred.' );
