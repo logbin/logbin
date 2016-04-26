@@ -1,6 +1,6 @@
 'use strict';
 
-let Logger = require( './dist/logger' );
+var Logger = require( './dist/logger' );
 Logger.LogStream = require( './dist/log-stream' );
 Logger.LogDisplay = require( './dist/log-display' );
 
