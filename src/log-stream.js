@@ -31,14 +31,14 @@ export default class LogStream extends EventEmitter {
       let jsonData = JSON.parse( data.toString() );
 
       if ( jsonData.operation === 'SEND_LOG' ) {
-	let output = jsonData.payload;
+        let output = jsonData.payload;
 
-	if( this._opts.prettify === true )
-	  output = prettyjson.render( output, me.PRETTIFY_COLORS[ output['@level'] ] );
+        if ( this._opts.prettify === true ) {
+          output = prettyjson.render( output, me.PRETTIFY_COLORS[ output[ '@level' ] ] );
+        }
 
         this.emit( 'log', output );
       }
-
     } );
 
     this._socket.connect( this._opts.uri );
@@ -90,14 +90,30 @@ export default class LogStream extends EventEmitter {
 
   get PRETTIFY_COLORS() {
     let colors = {
-      'error': {keysColor: 'white', stringColor: 'red'},
-      'warn': {keysColor: 'white', stringColor: 'magenta'},
-      'info': {keysColor: 'white',  stringColor: 'green'},
-      'verbose': {noColor: true},
-      'debug': {keysColor: 'white', stringColor: 'red'},
-      'silly': {noColor: true}
+      error: {
+        keysColor: 'white',
+        stringColor: 'red'
+      },
+      warn: {
+        keysColor: 'white',
+        stringColor: 'magenta'
+      },
+      info: {
+        keysColor: 'white',
+        stringColor: 'green'
+      },
+      verbose: {
+        noColor: true
+      },
+      debug: {
+        keysColor: 'white',
+        stringColor: 'red'
+      },
+      silly: {
+        noColor: true
+      }
     };
-    
+
     return colors;
   }
 }
