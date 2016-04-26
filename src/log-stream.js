@@ -5,7 +5,6 @@ import zmq          from 'zmq';
 import _            from 'lodash';
 import EventEmitter from 'events';
 import uuid         from 'uuid-js';
-import prettyjson   from 'prettyjson';
 
 export default class LogStream extends EventEmitter {
   constructor( opts ) {
@@ -13,8 +12,6 @@ export default class LogStream extends EventEmitter {
 
     assert( opts.store, `'store' is not specified` );
     assert( opts.token, `'token' is not specified` );
-
-    let me = this;
 
     this._opts = _.merge( {
       uri: 'tcp://127.0.0.1:5556',
@@ -31,13 +28,7 @@ export default class LogStream extends EventEmitter {
       let jsonData = JSON.parse( data.toString() );
 
       if ( jsonData.operation === 'SEND_LOG' ) {
-        let output = jsonData.payload;
-
-        if ( this._opts.prettify === true ) {
-          output = prettyjson.render( output, me.PRETTIFY_COLORS[ output[ '@level' ] ] );
-        }
-
-        this.emit( 'log', output );
+        this.emit( 'log', jsonData.payload );
       }
     } );
 
@@ -86,34 +77,5 @@ export default class LogStream extends EventEmitter {
       'debug',
       'silly'
     ];
-  }
-
-  get PRETTIFY_COLORS() {
-    let colors = {
-      error: {
-        keysColor: 'white',
-        stringColor: 'red'
-      },
-      warn: {
-        keysColor: 'white',
-        stringColor: 'magenta'
-      },
-      info: {
-        keysColor: 'white',
-        stringColor: 'green'
-      },
-      verbose: {
-        noColor: true
-      },
-      debug: {
-        keysColor: 'white',
-        stringColor: 'red'
-      },
-      silly: {
-        noColor: true
-      }
-    };
-
-    return colors;
   }
 }
