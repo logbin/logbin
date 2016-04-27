@@ -1,87 +1,93 @@
 'use strict';
 
-import Logger 		from './logger';
+import Logger       from './logger';
 import prettyJson   from 'prettyjson';
+import fs           from 'fs-promise';
+import 'babel-polyfill';
+import co           from 'co';
 import assert       from 'assert';
-import co 			from 'co';
-import fs			from 'fs-promise';
 
 export default class LogDisplay {
-	constructor ( configFile ) {
-		assert( configFile, `'config file' is not specified` );
-	}
+  constructor( configFile ) {
+    this.configFile = configFile;
+    this.prettify = prettyJson;
+    this._logger = Logger;
+  }
 
+  _readFile() {
+    let fileExt = 'json';
 
+    return fs.readFile( './' + this.configFile + '.' + fileExt, 'utf-8' );
+  }
 
-	show () {
-		let me = this;
+  show() {
+    let me = this;
 
-		/*co( function* () {
-			let config = yield fs.readFile('./logbin-config.json', 'utf-8');
-			let log = new Logger(JSON.parse(config));
-			let stream = new Logger.LogStream(JSON.parse(config));
+    co( function*() {
+      let fileContent = yield me._readFile();
+      me.configJson = JSON.parse( fileContent );
 
-			// let config = { token: "EkjFpCW0x", store: "abcd" };
-			// let log = new Logger(config);
-			// let stream = new Logger.LogStream(config);
+      assert( me.configJson.store, `'store' is not specified` );
+      assert( me.configJson.token, `'token' is not specified` );
 
-			stream.on( 'log', (data) => {
-				console.log(data);
-			});
+      let stream = new me._logger.LogStream( me.configJson );
 
-			log.info('test info');
-		} );*/
+      stream.on( 'log', ( data ) => {
+        let color = me.colors( data[ '@level' ] );
+        let output = [];
+        output.push( me.prettify.render( data[ '@level' ], color ) );
+        output.push( '[ ' + me.prettify.render( data[ '@scope' ], color ) + ' ]' );
+        output.push( '[' + me.prettify.render( data[ '@timestamp' ], color ) + ']' );
 
-		function showLogs ( data ) {
-			let config = JSON.parse( data );
-			let log = new Logger( config );
-			let stream = new Logger.LogStream( config );
+        if ( data[ '@message' ] ) {
+          output.push( ' ' + me.prettify.render( data[ '@message' ], color ) );
+        }
 
-			stream.on( 'log', (data) => {
-				let color = me.colors( data[ '@level' ] );
-				let output = prettyJson.render( data[ '@level' ], color );
-				output += '[ ' + prettyJson.render( data[ '@scope' ], color ) + ' ]';
+        let payloadKeys = Object.keys( data );
+        let payload = [];
 
-				if( data['@message'] ) {
-					output += ' ' + prettyJson.render( data[ '@message' ], color ) + ' ';
-				}
-				
-				console.log(output);
-			});
+        payloadKeys.forEach( function( val ) {
+          payload.push( val + ': ' + data[ val ] );
+        } );
 
-			log.info('test info');
-		}
+        output.push( ' { ' + payload.join( ', ' ) + ' }' );
 
-		fs.readFile( './logbin-config.json', 'utf-8' ).then( showLogs );
-	}
+        console.log( output.join( '' ) );
+      } );
+    } );
+  }
 
-	colors ( level ) {
-	    let colors = {
-	    	error: {
-	    		keysColor: 'white',
-	    		stringColor: 'red'
-	    	},
-	    	warn: {
-	    		keysColor: 'white',
-	    		stringColor: 'magenta'
-	    	},
-	    	info: {
-	    		keysColor: 'white',
-	    		stringColor: 'green'
-	    	},
-	    	verbose: {
-	    		noColor: true
-	    	},
-	    	debug: {
-	    		keysColor: 'white',
-	    		stringColor: 'red'
-	    	},
-	    	silly: {
-	    		noColor: true
-	    	}
-	    };
+  colors( level ) {
+    let colors = {
+      error: {
+        keysColor: 'white',
+        stringColor: 'red'
+      },
+      warn: {
+        keysColor: 'white',
+        stringColor: 'magenta'
+      },
+      info: {
+        keysColor: 'white',
+        stringColor: 'green'
+      },
+      verbose: {
+        noColor: true
+      },
+      debug: {
+        keysColor: 'white',
+        stringColor: 'red'
+      },
+      silly: {
+        noColor: true
+      }
+    };
 
-	    return colors[ level ];
-  	}
+    if ( level ) {
+      return colors[ level ];
+    }
+
+    return colors;
+  }
 
 }

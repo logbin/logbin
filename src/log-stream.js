@@ -30,10 +30,12 @@ export default class LogStream extends EventEmitter {
       if ( jsonData.operation === 'SEND_LOG' ) {
         this.emit( 'log', jsonData.payload );
       }
+
     } );
 
     this._socket.connect( this._opts.uri );
     this._subscribe();
+    this._ping();
   }
 
   _subscribe() {
@@ -77,5 +79,13 @@ export default class LogStream extends EventEmitter {
       'debug',
       'silly'
     ];
+  }
+
+  _ping() {
+    setInterval( () => {
+      this._socket.send( JSON.stringify( {
+        operation: 'PING'
+      } ) );
+    }, 10000 );
   }
 }
