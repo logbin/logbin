@@ -10,6 +10,8 @@ import Logger  from '../index.js';
 let router = zmq.socket( 'router' );
 let uri = 'tcp://127.0.0.1:5555';
 
+router[ 'plain_server' ] = 1;
+
 router.on( 'message', ( envelope, data ) => {
   let request = JSON.parse( data.toString() );
 
@@ -25,10 +27,6 @@ router.on( 'message', ( envelope, data ) => {
     }
   }
 } );
-
-// jscs: disable
-router.plain_server = 1;
-// jscs: enable
 
 router.bind( uri );
 

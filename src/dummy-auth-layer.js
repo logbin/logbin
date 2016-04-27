@@ -31,9 +31,7 @@ class Auth {
   }
 
   init() {
-    if ( process.argv[ 0 ] === 'mocha' ) {
-      this._zapSocket.bindSync( 'inproc://zeromq.zap.01' );
-    }
+    this._zapSocket.bindSync( 'inproc://zeromq.zap.01' );
   }
 
   _authentication( data, cb ) {
