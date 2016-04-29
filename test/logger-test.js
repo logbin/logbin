@@ -2,37 +2,45 @@
 
 import 'babel-polyfill';
 import 'co-mocha';
-import assert	from 'assert';
-import zmq	  from 'zmq';
-import Logger  from '../index.js';
+import assert	    from 'assert';
+import net        from 'net';
+import Logger     from '../';
+import jsonEnable from '../dist/json-socket';
 
 // Start a dummy inbound server
-let router = zmq.socket( 'router' );
-let uri = 'tcp://127.0.0.1:5555';
-
-router[ 'plain_server' ] = 1;
-
-router.on( 'message', ( envelope, data ) => {
-  let request = JSON.parse( data.toString() );
-
-  if ( request.ref ) {
+let server = net.createServer().listen( 5555, 'localhost' );
+server.on( 'connection', socket => {
+  jsonEnable( socket, 'json' );
+  socket.on( 'json', request => {
     let response = {
-      ref: request.ref,
-      operation: 'SEND_ACK'
+      ref: request.ref
     };
 
-    // For test purposes, do not send a response with this condition
-    if ( request.payload[ '@message' ] !== `Do not send a response.` ) {
-      router.send( [ envelope, JSON.stringify( response ) ] );
+    if ( request.operation === 'CONNECT' ) {
+      response.operation = 'CONN_ACK';
+      response.success = true;
     }
-  }
-} );
 
-router.bind( uri );
+    if ( request.operation === 'SEND_LOG' ) {
+      response.operation = 'SEND_ACK';
+    }
+
+    let doNotReply;
+    if ( request.operation === 'SEND_LOG' ) {
+      doNotReply = request.payload[ '@message' ] === 'Do not send a response.';
+    }
+
+    if ( !doNotReply ) {
+      socket.write( response );
+    }
+
+  } );
+} );
 
 describe( 'Testing Logger API', () => {
   let loggerConfig = {
-    uri: uri,
+    port: 5555,
+    host: 'localhost',
     token: 'EkjFpCW0x',
     store: 'clint',
     console: false
@@ -48,7 +56,7 @@ describe( 'Testing Logger API', () => {
   it( 'should send a log with object data', function *() {
     return logger.ack().log( 'error', { name: 'Clint', age: '23' } )
       .then( ( result ) => {
-        assert.equal( result, result );
+        assert( result );
       } );
   } );
 
