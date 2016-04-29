@@ -9,9 +9,9 @@ if ( process.argv.length == 3 )
   new Logger.LogDisplay( process.argv[ 2 ] ).show();
 }
 
-module.exports = Logger;
-
 // Remove the following 2 lines when the
 // server is already deployed.
 var dummyZapLayer = require( './dist/dummy-auth-layer' );
 dummyZapLayer.init();
+
+module.exports = Logger;
