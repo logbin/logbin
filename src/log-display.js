@@ -21,26 +21,26 @@ export default class LogDisplay {
   }
 
   show() {
-    let me = this;
+    let self = this;
 
     co( function*() {
-      let fileContent = yield me._readFile();
-      me.configJson = JSON.parse( fileContent );
+      let fileContent = yield self._readFile();
+      self.configJson = JSON.parse( fileContent );
 
-      assert( me.configJson.store, `'store' is not specified` );
-      assert( me.configJson.token, `'token' is not specified` );
+      assert( self.configJson.store, `'store' is not specified` );
+      assert( self.configJson.token, `'token' is not specified` );
 
-      let stream = new me._logger.LogStream( me.configJson );
+      let stream = new self._logger.LogStream( self.configJson );
 
       stream.on( 'log', ( data ) => {
-        let color = me.colors( data[ '@level' ] );
+        let color = self.colors( data[ '@level' ] );
         let output = [];
-        output.push( me.prettify.render( data[ '@level' ], color ) );
-        output.push( '[ ' + me.prettify.render( data[ '@scope' ], color ) + ' ]' );
-        output.push( '[' + me.prettify.render( data[ '@timestamp' ], color ) + ']' );
+        output.push( self.prettify.render( data[ '@level' ], color ) );
+        output.push( '[ ' + self.prettify.render( data[ '@scope' ], color ) + ' ]' );
+        output.push( '[' + self.prettify.render( data[ '@timestamp' ], color ) + ']' );
 
         if ( data[ '@message' ] ) {
-          output.push( ' ' + me.prettify.render( data[ '@message' ], color ) );
+          output.push( ' ' + self.prettify.render( data[ '@message' ], color ) );
         }
 
         let payloadKeys = Object.keys( data );

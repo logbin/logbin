@@ -2,11 +2,12 @@
 
 import assert       from 'assert';
 import _            from 'lodash';
-import zmq          from 'zmq';
+import net          from 'net';
 import { inspect }  from 'util';
 import Promise      from 'bluebird';
 import NodeCache    from 'node-cache';
 import uuid         from 'uuid-js';
+import jsonEnable   from './json-socket';
 
 let promiseCache = new NodeCache( {
   stdTTL: 5,
@@ -27,12 +28,14 @@ export default class Logger {
    * Create a new instance of Logger
    * @constructor
    * @access public
-   * @param  {object}  opts
-   * @param  {boolean} opts.console
-   * @param  {string}  opts.store
-   * @param  {string}  opts.scope
-   * @param  {string}  opts.token
-   * @param  {number}  opts.timeout
+   * @param { object }  opts
+   * @param { boolean } opts.console
+   * @param { string }  opts.store
+   * @param { string }  opts.scope
+   * @param { string }  opts.token
+   * @param { number }  opts.timeout
+   * @param { int }     opts.port
+   * @param { string }  opts.host
    */
   constructor( opts ) {
     if ( !opts.console ) {
@@ -53,8 +56,8 @@ export default class Logger {
       };
     } );
 
+    this._authPhase = true;
     this._propSocket = this._socket;
-
   }
 
   /*
@@ -137,7 +140,7 @@ export default class Logger {
     } else {
       let request = {
         ref: this._ack ? uuid.create( 1 ).toString() : undefined,
-        operation: 'SEND',
+        operation: 'SEND_LOG',
         store: this._opts.store,
         payload: data
       };
@@ -147,8 +150,7 @@ export default class Logger {
         promiseCache.set( request.ref, deferred, this._opts.timeout );
       }
 
-      this._propSocket.send( JSON.stringify( request ) );
-
+      this._propSocket.write( request );
     }
 
     this._ack = false;
@@ -164,17 +166,47 @@ export default class Logger {
    */
   get _socket() {
     if ( !this._opts.console && !this._propSocket ) {
-      let socket = zmq.socket( 'dealer' );
-      socket[ 'plain_password' ] = this._opts.token;
-
-      socket.on( 'message', data => {
-        this._resolvePromise( JSON.parse( data.toString() ) );
+      let socket = net.connect( {
+        port: this._opts.port || 5555,
+        host: this._opts.host || 'localhost'
       } );
 
-      socket.connect( this._opts.uri || 'tcp://127.0.0.1:5555' );
+      jsonEnable( socket, 'json' );
+
+      socket.on( 'json', response => {
+        this._handleRequest( response );
+      } );
+
+      /**
+       * Send authentication request to server
+       */
+      socket.write( {
+        ref: uuid.create( 1 ).toString(),
+        operation: 'CONNECT',
+        store: this._opts.store,
+        token: this._opts.token
+      } );
+
       this._propSocket = socket;
     }
     return this._propSocket;
+  }
+
+  /**
+   * Server response handler
+   * @param { object } response
+   */
+  _handleRequest( response ) {
+    if ( this._authPhase ) {
+      if ( response.success ) {
+        this._authPhase = false;
+      } else {
+        let error = response.error;
+        throw new Error( `Error ${error.code}. ${error.message}` );
+      }
+    } else {
+      this._resolvePromise( response );
+    }
   }
 
   /**
@@ -189,7 +221,6 @@ export default class Logger {
       deferred.resolve( true );
       promiseCache.del( data.ref );
     }
-
   }
 
   /**
