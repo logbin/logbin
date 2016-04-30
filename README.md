@@ -59,7 +59,8 @@ Logger settings comes with the following options:
 |:------:| ---------- |:--------:|
 | *store* | Store name wherein your logs will be stored. This name must be lowercase, cannot begin with an underscore, and cannot contain commas. | required |
 | *token* | Token provided to you which will be used for authentication. | required |
-| *uri* | Address of the server. When not specified, default address will be used. | optional |
+| *port* | (default = 5555 ) Port used by the server inbound. | optional |
+| *host* | (default = 'localhost') Hostname of the server inbound. | optional |
 | *scope* | ( default: 'server' ) This will be the scope of your logs. | optional |
 | *level* | ( default: 'info' ) Log severity used when level is not specified upon sending the log. | optional |
 | *requestTTL* | ( default: 5 ) The standard ttl of requests in seconds when no response is received from the server. | optional |
@@ -69,7 +70,7 @@ You can also instantiate new logger instance with a set scope from any logger in
 ```javascript
 //some instance of a logger
 
-var newLogger = logger.scope('global');
+var newLogger = logger.scope( 'global' );
 ```
 ###Method Chaining
 .ack() method is chainable.
@@ -81,7 +82,7 @@ logger.ack().error( 'An error log.' )
 ```
 
 ###Transports
-Instance of a logbin can have configured transports.
+You can select transport used by the logger by setting
 
 ####Example:
 
