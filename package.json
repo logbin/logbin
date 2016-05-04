@@ -77,11 +77,9 @@
     "lodash": "^4.8.2",
     "minimist": "^1.2.0",
     "node-cache": "^3.2.1",
+    "node-uuid": "^1.4.7",
     "prettyjson": "^1.1.3",
-    "q": "^1.4.1",
-    "uuid-js": "^0.7.5",
-    "zmq": "^2.14.0",
-    "zmq-zap": "0.0.2"
+    "q": "^1.4.1"
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.1.2",

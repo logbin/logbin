@@ -21,12 +21,9 @@ server.on( 'connection', socket => {
       response.success = true;
     }
 
-    if ( request.operation === 'SEND_LOG' ) {
-      response.operation = 'SEND_ACK';
-    }
-
     let doNotReply;
-    if ( request.operation === 'SEND_LOG' ) {
+    if ( request.operation === 'SEND' ) {
+      response.operation = 'SEND_ACK';
       doNotReply = request.payload[ '@message' ] === 'Do not send a response.';
     }
 
