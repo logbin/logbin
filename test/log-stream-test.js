@@ -1,36 +1,50 @@
 'use strict';
 
 import assert         from 'assert';
-import zmq            from 'zmq';
 import Promise        from 'bluebird';
+import net            from 'net';
 import { LogStream }  from '../index';
+import jsonEnable     from '../dist/json-socket';
 import 'babel-polyfill';
 import 'co-mocha';
 
-let uri = 'tcp://127.0.0.1:5556';
-
 // Start dummy outbound server
-let router = zmq.socket( 'router' );
-router[ 'plain_server' ] = 1;
+let server = net.createServer().listen( 5556, 'localhost' );
+let _socket;
+server.on( 'connection', socket => {
+  jsonEnable( socket, 'json' );
+  _socket = socket;
+  socket.on( 'json', request => {
+    let response = {
+      ref: request.ref
+    };
 
-let clientIdentity;
-router.on( 'message', ( envelope, data ) => {
-  clientIdentity = envelope;
-  let jsonRequest = JSON.parse( data.toString() );
-  let response = {
-    ref: jsonRequest.ref,
-    operation: 'SUBSCRIBE_ACK'
-  };
-  router.send( [ envelope, JSON.stringify( response ) ] );
+    if ( request.operation === 'CONNECT' ) {
+      response.operation = 'CONN_ACK';
+      response.success = true;
+    }
+
+    if ( request.operation === 'SUBSCRIBE' ) {
+      response.operation = 'SUBSCRIBE_ACK';
+    }
+
+    socket.write( response );
+  } );
 } );
 
-router.bind( uri );
+let deferred;
+function sendToOutboundClient ( request ) {
+  deferred = new Promise.pending();
+  _socket.write( request );
+  return deferred.promise;
+}
 
 describe( 'Testing Realtime Logstream API', () => {
   let config = {
-    uri: uri,
+    port: 5556,
+    host: 'localhost',
     token: 'EkjFpCW0x',
-    store: 'test'
+    store: 'log-stream-test'
   };
 
   let realtime = new LogStream( config );
@@ -38,7 +52,6 @@ describe( 'Testing Realtime Logstream API', () => {
   it( 'schema value should change from default to new input', () => {
     let defaultSchema = realtime.schema;
     let newSchema = {
-      type: 'object',
       properties: {
         age: { type: 'number', maximum: 23 }
       }
@@ -64,7 +77,6 @@ describe( 'Testing Realtime Logstream API', () => {
   // of filters yet. It is only to test whether
   // the eventemitter fires on log event when the server
   // sends a log to the client
-  let deferred = new Promise.pending();
 
   realtime.on( 'log', ( logObject ) => {
     setTimeout( () => {
@@ -80,21 +92,12 @@ describe( 'Testing Realtime Logstream API', () => {
         '@message': 'Just a usual log.',
         '@scope': 'server',
         '@level': 'silly',
-        '@timestamp': 'April 11 16:33:30'
+        '@timestamp': new Date().toISOString()
       }
     };
 
-    let result = yield routerSendToClient( anyLog );
+    let result = yield sendToOutboundClient( anyLog );
     assert.equal( JSON.stringify( result ), JSON.stringify( anyLog.payload ) );
   } );
-
-  function routerSendToClient ( data ) {
-
-    // The clientIdentity here should already
-    // be set after we have called on the
-    // subscribe method
-    router.send( [ clientIdentity, JSON.stringify( data ) ] );
-    return deferred.promise;
-  }
 
 } );

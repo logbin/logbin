@@ -6,7 +6,7 @@ import net          from 'net';
 import { inspect }  from 'util';
 import Promise      from 'bluebird';
 import NodeCache    from 'node-cache';
-import uuid         from 'uuid-js';
+import uuid         from 'node-uuid';
 import jsonEnable   from './json-socket';
 
 let promiseCache = new NodeCache( {
@@ -28,14 +28,14 @@ export default class Logger {
    * Create a new instance of Logger
    * @constructor
    * @access public
-   * @param { object }  opts
-   * @param { boolean } opts.console
-   * @param { string }  opts.store
-   * @param { string }  opts.scope
-   * @param { string }  opts.token
-   * @param { number }  opts.timeout
-   * @param { int }     opts.port
-   * @param { string }  opts.host
+   * @param { Object }  opts
+   * @param { Boolean } opts.console
+   * @param { String }  opts.store
+   * @param { String }  opts.scope
+   * @param { String }  opts.token
+   * @param { Int }     opts.timeout
+   * @param { Int }     opts.port
+   * @param { String }  opts.host
    */
   constructor( opts ) {
     if ( !opts.console ) {
@@ -43,12 +43,12 @@ export default class Logger {
       assert( opts.token, `'token' is not specified` );
     }
 
-    this._opts = _.merge( {
+    this._opts = _.defaults( opts, {
       timeout: 5,
       scope: 'global',
       levels: Logger.DEFAULT_LOG_LEVELS,
       level: 'info'
-    }, opts || {} );
+    } );
 
     _.each( this._opts.levels, level => {
       this[ level ] =  input  => {
@@ -75,8 +75,8 @@ export default class Logger {
   /**
    * Log
    * @access public
-   * @param  {string} level
-   * @param  {...*}
+   * @param  { String } level
+   * @param  { ...* }
    */
   log( params ) {
     let level = params;
@@ -139,9 +139,8 @@ export default class Logger {
       console.log( data );
     } else {
       let request = {
-        ref: this._ack ? uuid.create( 1 ).toString() : undefined,
-        operation: 'SEND_LOG',
-        store: this._opts.store,
+        ref: this._ack ? uuid.v1() : undefined,
+        operation: 'SEND',
         payload: data
       };
 
@@ -181,7 +180,7 @@ export default class Logger {
        * Send authentication request to server
        */
       socket.write( {
-        ref: uuid.create( 1 ).toString(),
+        ref: uuid.v1(),
         operation: 'CONNECT',
         store: this._opts.store,
         token: this._opts.token

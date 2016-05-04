@@ -1,10 +1,11 @@
 'use strict';
 
 import assert       from 'assert';
-import zmq          from 'zmq';
+import net          from 'net';
 import _            from 'lodash';
 import EventEmitter from 'events';
-import uuid         from 'uuid-js';
+import uuid         from 'node-uuid';
+import jsonEnable   from './json-socket';
 
 export default class LogStream extends EventEmitter {
   constructor( opts ) {
@@ -13,41 +14,48 @@ export default class LogStream extends EventEmitter {
     assert( opts.store, `'store' is not specified` );
     assert( opts.token, `'token' is not specified` );
 
-    this._opts = _.merge( {
-      uri: 'tcp://127.0.0.1:5556',
+    this._opts = _.defaults( opts, {
+      port: 5556,
+      host: 'localhost',
       level: 'silly',
       levels: LogStream.DEFAULT_LOG_LEVELS,
       schema: {}
-    }, opts || {} );
-
-    this._socket = zmq.socket( 'dealer' );
-
-    this._socket[ 'plain_password' ] = this._opts.token;
-
-    this._socket.on( 'message', ( data ) => {
-      let jsonData = JSON.parse( data.toString() );
-
-      if ( jsonData.operation === 'SEND_LOG' ) {
-        this.emit( 'log', jsonData.payload );
-      }
-
     } );
 
-    this._socket.connect( this._opts.uri );
+    this._socket = net.connect( {
+      port: this._opts.port || '5556',
+      host: this._opts.host || 'localhost'
+    } );
+
+    jsonEnable( this._socket, 'json' );
+    this._socket.on( 'json', data => {
+      if ( data.operation === 'SEND_LOG' ) {
+        this.emit( 'log', data.payload );
+      }
+    } );
+
+    /**
+     * Send authentication
+     */
+    this._socket.write( {
+      ref: uuid.v1(),
+      operation: 'CONNECT',
+      store: this._opts.store,
+      token: this._token
+    } );
+
     this._subscribe();
-    this._ping();
   }
 
   _subscribe() {
     let request = {
-      ref: uuid.create( 1 ).toString(),
+      ref: uuid.v1(),
       operation: 'SUBSCRIBE',
-      store: this._opts.store,
       level: this._opts.level,
       schema: this._opts.schema
     };
 
-    this._socket.send( JSON.stringify( request ) );
+    this._socket.write( request );
   }
 
   set schema( schema ) {
@@ -79,13 +87,5 @@ export default class LogStream extends EventEmitter {
       'debug',
       'silly'
     ];
-  }
-
-  _ping() {
-    setInterval( () => {
-      this._socket.send( JSON.stringify( {
-        operation: 'PING'
-      } ) );
-    }, 10000 );
   }
 }
