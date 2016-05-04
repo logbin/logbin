@@ -1,35 +1,6 @@
 # Logbin.io-client
 Simple real-time logging system for your node applications.
 
-## Dependencies
-* ZMQ Library
-
-### Installation of ZMQ Library
-Install necessary packages:
-
-    sudo apt-get install libtool pkg-config build-essential autoconf automake
-    sudo apt-get install libzmq-dev
-    sudo apt-get install uuid uuid-dev uuid-runtime
-
-Install `libsodium`:
-
-    wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.10.tar.gz
-    tar -xvf libsodium-1.0.10.tar.gz
-    cd libsodium-1.0.10/
-    ./configure
-    make
-    sudo make install
-
-Install `ZeroMQ Library`:
-
-    wget http://download.zeromq.org/zeromq-4.1.4.tar.gz
-    tar -xvf zeromq-4.1.4.tar.gz
-    cd zeromq-4.1.4/
-    ./configure
-    make
-    sudo make install
-    sudo ldconfig
-
 ##Installation
 Using npm:
 
@@ -143,12 +114,13 @@ Configuration of the LogStream API comes with the following options:
 |:------:| ---------- |:--------:|
 | *store* | Store name from where the logs are received. This name must be lowercase, cannot begin with an underscore, and cannot contain commas. | required |
 | *token* | Used for authentication which will be provided to you. | required |
-| *uri* | Address of the server. When not specified, default address will be used. | optional |
+| *port* | (default = 5555 ) Port used by the server inbound. | optional |
+| *host* | (default = 'localhost') Hostname of the server inbound. | optional |
 | *level* | (default = 'silly' ) Severity level of logs to be received. | optional |
 | *schema* | Object that follows JSON Schema draft 4 Standard. This will define the log filter. If not provided, you will receive all logs that is in range of the set severity level. | optional |
 
 ###Log levels
-You can also set the severity of logs you want to receive on the run.
+You can also set the severity of logs you want to receive ( on the run ).
 
 ####Example:
 
