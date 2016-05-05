@@ -35,13 +35,19 @@ Logger settings comes with the following options:
 | *scope* | ( default: 'server' ) This will be the scope of your logs. | optional |
 | *level* | ( default: 'info' ) Log severity used when level is not specified upon sending the log. | optional |
 | *requestTTL* | ( default: 5 ) The standard ttl of requests in seconds when no response is received from the server. | optional |
+| *console* | ( default: false ) If set to true, logs are not sent to the server and will only show up in the console. | optional |
+
+###Log Levels
+Log levels are `error`, `warn`, `info`, `verbose`, `debug`, and `silly`.
 
 ###Send Logs
-Sending logs is as easy.
+Sending logs is easy.
 
 ####Example:
 ```javascript
 logger.error( 'Something bad happened.' );
+logger.info( { id: 12345, name: 'Margie', age: 23, action: 'login' } );
+logger.log( 'warn', 'The night is dark and full of terrors.' );
 ```
 
 ###Scoping
@@ -64,7 +70,8 @@ logger.ack().error( 'An error log.' )
 ```
 
 ###Transports
-You can select transport used by the logger by setting
+You can select not to send your logs to the server, instead, log it directly
+to your console by setting the `console` property to true.
 
 ####Example:
 
