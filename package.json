@@ -1,6 +1,6 @@
 {
   "name": "logbin",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "NodeJS client for logbin.io",
   "main": "index.js",
   "scripts": {
