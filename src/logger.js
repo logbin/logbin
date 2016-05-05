@@ -227,7 +227,6 @@ export default class Logger {
    * @access protected
    */
   set _socket( socket ) {
-    assert.equal( typeof socket, 'string', `${socket} is not a string.` );
     this._propSocket = socket;
   }
 
@@ -237,6 +236,7 @@ export default class Logger {
    * @return {Logger}
    */
   scope( scope ) {
+    assert.equal( typeof scope, 'string', `${scope} is not a string.` );
     let logger = new Logger( _.merge( this._opts, {
       scope
     } ) );
