@@ -41,8 +41,6 @@ function sendToOutboundClient ( request ) {
 
 describe( 'Testing Realtime Logstream API', () => {
   let config = {
-    port: 5556,
-    host: 'localhost',
     token: 'EkjFpCW0x',
     store: 'log-stream-test'
   };
