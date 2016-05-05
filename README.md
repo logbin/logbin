@@ -66,7 +66,7 @@ var config = {
   console: true
 };
 
-var logger = Logbin( config );
+var logger = new Logbin( config );
 ```
 
 ###Promise
