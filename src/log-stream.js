@@ -22,28 +22,7 @@ export default class LogStream extends EventEmitter {
       schema: {}
     } );
 
-    this._socket = net.connect( {
-      port: this._opts.port || '5556',
-      host: this._opts.host || 'localhost'
-    } );
-
-    jsonEnable( this._socket, 'json' );
-    this._socket.on( 'json', data => {
-      if ( data.operation === 'SEND_LOG' ) {
-        this.emit( 'log', data.payload );
-      }
-    } );
-
-    /**
-     * Send authentication
-     */
-    this._socket.write( {
-      ref: uuid.v1(),
-      operation: 'CONNECT',
-      store: this._opts.store,
-      token: this._token
-    } );
-
+    this._propSocket = this._socket;
     this._subscribe();
   }
 
@@ -54,8 +33,38 @@ export default class LogStream extends EventEmitter {
       level: this._opts.level,
       schema: this._opts.schema
     };
+    this._propSocket.write( request );
+  }
 
-    this._socket.write( request );
+  set _socket( socket ) {
+    this._propSocket = socket;
+  }
+
+  get _socket() {
+    if ( !this._propSocket ) {
+      let socket = net.connect( {
+        port: this._opts.port || 5556,
+        host: this._opts.host || 'localhost'
+      } );
+
+      jsonEnable( socket, 'json' );
+
+      socket.on( 'json', data => {
+        if ( data.operation === 'SEND_LOG' ) {
+          this.emit( 'log', data.payload );
+        }
+      } );
+
+      socket.write( {
+        ref: uuid.v1(),
+        operation: 'CONNECT',
+        store: this._opts.store,
+        token: this._opts.token
+      } );
+
+      this._propSocket = socket;
+    }
+    return this._propSocket;
   }
 
   set schema( schema ) {
