@@ -227,6 +227,7 @@ export default class Logger {
    * @access protected
    */
   set _socket( socket ) {
+    assert.equal( typeof socket, 'string', `${socket} is not a string.` );
     this._propSocket = socket;
   }
 
