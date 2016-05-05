@@ -36,12 +36,23 @@ Logger settings comes with the following options:
 | *level* | ( default: 'info' ) Log severity used when level is not specified upon sending the log. | optional |
 | *requestTTL* | ( default: 5 ) The standard ttl of requests in seconds when no response is received from the server. | optional |
 
+###Send Logs
+Sending logs is as easy.
+
+####Example:
+```javascript
+logger.error( 'Something bad happened.' );
+```
+
+###Scoping
 You can also instantiate new logger instance with a set scope from any logger instance created.
 
 ```javascript
 //some instance of a logger
 
-var newLogger = logger.scope( 'global' );
+var globals = logger.scope( 'global' );
+
+globals.error( 'A global error occured.' );
 ```
 ###Method Chaining
 .ack() method is chainable.
