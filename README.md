@@ -12,7 +12,7 @@ Logger API is used to send logs from your node applications to the server.
 ###Initialization
 Initializing the Logger API requires configuration settings.
 
-```javascriptl
+```javascript
 var Logbin = require( 'logbin' );
 
 var config = {
@@ -20,7 +20,7 @@ var config = {
   token: 'validtoken'
 };
 
-var logger = Logbin( config );
+var logger = new Logbin( config );
 ```
 
 ###Options
@@ -96,15 +96,13 @@ Sending a log with .ack() method returns a promise.
 var co = require( 'co' );
 
 co( function *() {
-  yield [
-    logger.ack().error( 'An error log.' ),                            // Send a log categorized by levels
-    logger.ack().warn( 'Warning log.' ),
-    logger.ack().info( { name: 'M. Saavedra', action: 'login' } ),     // You can also send an object
-    logger.ack().verbose( 'Over medication is o-verbose.' ),
-    logger.ack().debug( 'Log for debugging.' ),
-    logger.ack().silly( 'Silly me.' ),
-    logger.ack().log( 'info', 'This is an information.' );            // Or you can specify the level instead
-  ];
+  yield logger.ack().error( 'An error log.' ),                            // Send a log categorized by levels
+  yield logger.ack().warn( 'Warning log.' ),
+  yield logger.ack().info( { name: 'M. Saavedra', action: 'login' } ),     // You can also send an object
+  yield logger.ack().verbose( 'Over medication is o-verbose.' ),
+  yield logger.ack().debug( 'Log for debugging.' ),
+  yield logger.ack().silly( 'Silly me.' ),
+  yield logger.ack().log( 'info', 'This is an information.' );            // Or you can specify the level instead
 } ).catch( error => console.log( error ) );                      // Catch reason of rejection
 ```
 
