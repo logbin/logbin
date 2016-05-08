@@ -17,7 +17,8 @@ var Logbin = require( 'logbin' );
 
 var config = {
   store: 'storename',
-  token: 'validtoken'
+  token: 'validtoken',
+  host: 'ec2-52-196-108-147.ap-northeast-1.compute.amazonaws.com'
 };
 
 var logger = new Logbin( config );
@@ -117,7 +118,8 @@ var LogStream = require( 'logbin' ).LogStream;
 
 var config = {
   store: 'storename',
-  token: 'validtoken'
+  token: 'validtoken',
+  host: 'ec2-52-196-108-147.ap-northeast-1.compute.amazonaws.com'
 };
 
 var logstream = new LogStream( config );
@@ -159,7 +161,7 @@ var config = {
     type: 'object',
     properties: {
       id: { type: 'number' },
-      fname: { type: 'string', pattern: '^Christopher$' },
+      fname: { type: 'string', pattern: '^Margie$' },
       age: { type: 'number', maximum: 23 }
     }
   }
@@ -188,3 +190,16 @@ You can listen to the event when a log is received from the server.
 ```javascript
 logstream.on( 'log', data => console.log( data ) ); // data will be in object form for easier manipulation
 ```
+
+##Server
+As of now, Logbin is still in its early stages of development. As the project initiates its testing phase, we need people to use the service to discover bugs and receive feedback for improvement. Fortunately, you can already use this service by connecting to the server with the following host.
+
+    Host: 'ec2-52-196-108-147.ap-northeast-1.compute.amazonaws.com'
+
+Just add the hostname above in your config object to the API.
+During the testing phase, there is no token validation implemented yet so you can put any string to this field.
+
+`Disclaimer: Logs you send are fed in to our own instance of elasticsearch so we can see your data as they come in. Use with caution and be responsible of your logs. We will soon put a feature in which you can use your own instance of elasticsearch as your logs storage.`
+
+##License
+MIT
