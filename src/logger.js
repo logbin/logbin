@@ -176,6 +176,14 @@ export default class Logger {
         this._handleRequest( response );
       } );
 
+      socket.on( 'error', ( err ) => {
+        console.log( `Logger socket has encountered a problem: ${ err }` );
+      } );
+
+      socket.on( 'close', () => {
+        console.log( `Socket has been closed.` );
+      } );
+
       /**
        * Send authentication request to server
        */
