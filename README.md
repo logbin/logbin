@@ -12,15 +12,16 @@ Logger API is used to send logs from your node applications to the server.
 ###Initialization
 Initializing the Logger API requires configuration settings.
 
-```javascriptl
+```javascript
 var Logbin = require( 'logbin' );
 
 var config = {
   store: 'storename',
-  token: 'validtoken'
+  token: 'validtoken',
+  host: 'ec2-52-196-108-147.ap-northeast-1.compute.amazonaws.com'
 };
 
-var logger = Logbin( config );
+var logger = new Logbin( config );
 ```
 
 ###Options
@@ -96,15 +97,13 @@ Sending a log with .ack() method returns a promise.
 var co = require( 'co' );
 
 co( function *() {
-  yield [
-    logger.ack().error( 'An error log.' ),                            // Send a log categorized by levels
-    logger.ack().warn( 'Warning log.' ),
-    logger.ack().info( { name: 'M. Saavedra', action: 'login' } ),     // You can also send an object
-    logger.ack().verbose( 'Over medication is o-verbose.' ),
-    logger.ack().debug( 'Log for debugging.' ),
-    logger.ack().silly( 'Silly me.' ),
-    logger.ack().log( 'info', 'This is an information.' );            // Or you can specify the level instead
-  ];
+  yield logger.ack().error( 'An error log.' ),                            // Send a log categorized by levels
+  yield logger.ack().warn( 'Warning log.' ),
+  yield logger.ack().info( { name: 'M. Saavedra', action: 'login' } ),     // You can also send an object
+  yield logger.ack().verbose( 'Over medication is o-verbose.' ),
+  yield logger.ack().debug( 'Log for debugging.' ),
+  yield logger.ack().silly( 'Silly me.' ),
+  yield logger.ack().log( 'info', 'This is an information.' );            // Or you can specify the level instead
 } ).catch( error => console.log( error ) );                      // Catch reason of rejection
 ```
 
@@ -119,7 +118,8 @@ var LogStream = require( 'logbin' ).LogStream;
 
 var config = {
   store: 'storename',
-  token: 'validtoken'
+  token: 'validtoken',
+  host: 'ec2-52-196-108-147.ap-northeast-1.compute.amazonaws.com'
 };
 
 var logstream = new LogStream( config );
@@ -161,7 +161,7 @@ var config = {
     type: 'object',
     properties: {
       id: { type: 'number' },
-      fname: { type: 'string', pattern: '^Christopher$' },
+      fname: { type: 'string', pattern: '^Margie$' },
       age: { type: 'number', maximum: 23 }
     }
   }
@@ -190,3 +190,16 @@ You can listen to the event when a log is received from the server.
 ```javascript
 logstream.on( 'log', data => console.log( data ) ); // data will be in object form for easier manipulation
 ```
+
+##Server
+As of now, Logbin is still in its early stages of development. As the project initiates its testing phase, we need people to use the service to discover bugs and receive feedback for improvement. Fortunately, you can already use this service by connecting to the server with the following host.
+
+    Host: 'ec2-52-196-108-147.ap-northeast-1.compute.amazonaws.com'
+
+Just add the hostname above in your config object to the API.
+During the testing phase, there is no token validation implemented yet so you can put any string to this field.
+
+`Disclaimer: Logs you send are fed in to our own instance of elasticsearch so we can see your data as they come in. Use with caution and be responsible of your logs. We will soon put a feature in which you can use your own instance of elasticsearch as your logs storage.`
+
+##License
+MIT

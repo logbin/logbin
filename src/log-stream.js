@@ -55,6 +55,14 @@ export default class LogStream extends EventEmitter {
         }
       } );
 
+      socket.on( 'error', ( err ) => {
+        console.log( `Logger socket has encountered a problem: ${ err }` );
+      } );
+
+      socket.on( 'close', () => {
+        console.log( `Socket has been closed.` );
+      } );
+
       socket.write( {
         ref: uuid.v1(),
         operation: 'CONNECT',
