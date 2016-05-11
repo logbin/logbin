@@ -47,34 +47,11 @@ describe( 'Testing Realtime Logstream API', () => {
 
   let realtime = new LogStream( config );
 
-  it( 'schema value should change from default to new input', () => {
-    let defaultSchema = realtime.schema;
-    let newSchema = {
-      properties: {
-        age: { type: 'number', maximum: 23 }
-      }
-    };
-    realtime.schema = newSchema;
-
-    assert.equal( JSON.stringify( defaultSchema ), JSON.stringify( {} ) );
-    assert.equal( JSON.stringify( realtime.schema ), JSON.stringify( newSchema ) );
-  } );
-
-  it( 'level value should change from default to new input', () => {
-    let defaultLevel = realtime.level;
-    realtime.level = 'error';
-
-    assert.equal( defaultLevel, 'silly' );
-    assert.equal( realtime.level, 'error' );
-  } );
-
-  // For testing purposes, we send a log from dummy server
-  // to client. The promise returned should be resolved
-  // on realtime.on( 'log' ) event.
-  // In this test, we do not consider the functionality
-  // of filters yet. It is only to test whether
-  // the eventemitter fires on log event when the server
-  // sends a log to the client
+  /**
+   * For testing purposes, we send a log from dummy server
+   * to this outbound client. The promise returned should
+   * be resolved on realtime.on( 'log' ) event.
+   */
 
   realtime.on( 'log', ( logObject ) => {
     setTimeout( () => {

@@ -137,14 +137,8 @@ Configuration of the LogStream API comes with the following options:
 | *level* | (default = 'silly' ) Severity level of logs to be received. | optional |
 | *schema* | Object that follows JSON Schema draft 4 Standard. This will define the log filter. If not provided, you will receive all logs that is in range of the set severity level. | optional |
 
-###Log levels
-You can also set the severity of logs you want to receive ( on the run ).
-
-####Example:
-
-```javascript
-  logstream.level = 'warn'; // You will receive logs with severity levels 'error' and 'warn'.
-```
+###Log Levels
+Logbin has predefined log levels which are `error`, `warn`, `info`, `verbose`, `debug`, and `silly`. Setting the `level` field in the LogStream API config object to `info` will allow you to receive logs with levels from `info` up to `error`. Leaving it to the default value which is `silly` will allow you to receive logs with all log levels.
 
 ###Log Filtering
 You can specify a filter to receive the logs you want by setting a schema. Logbin implements [JSON Schema draft 4 standard](http://json-schema.org/) for the logstream filter schema.
@@ -168,18 +162,6 @@ var config = {
 };
 
 var logstream = new LogStream( config );
-
-// You can also set it using the setter method.
-// To receive logs with levels error, warn, or info that has an id with 'number' type, fname with value 'Margie', and age <= 23.
-var newSchema = {
-  type: 'object',
-  properties: {
-    id: { type: 'number' },
-    fname: { type: 'string', pattern: '^Margie$' },
-    age: { type: 'number', maximum: 23 }
-  }
-};
-logstream.schema = newSchema;
 ```
 
 ###On Log Event
@@ -198,8 +180,6 @@ As of now, Logbin is still in its early stages of development. As the project in
 
 Just add the hostname above in your config object to the API.
 During the testing phase, there is no token validation implemented yet so you can put any string to this field.
-
-`Disclaimer: Logs you send are fed in to our own instance of elasticsearch so we can see your data as they come in. Use with caution and be responsible of your logs. We will soon put a feature in which you can use your own instance of elasticsearch as your logs storage.`
 
 ##License
 MIT

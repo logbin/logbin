@@ -53,6 +53,15 @@ export default class LogStream extends EventEmitter {
         if ( data.operation === 'SEND_LOG' ) {
           this.emit( 'log', data.payload );
         }
+
+        if ( data.operation === 'CONN_ACK' ) {
+          this._authorized = true;
+          this._subscribe();
+        }
+
+        if ( data.operation === 'CONN_FAIL' ) {
+          console.log( `Connection failed. Errors: ${ data.errors }` );
+        }
       } );
 
       socket.on( 'error', ( err ) => {
@@ -73,26 +82,6 @@ export default class LogStream extends EventEmitter {
       this._propSocket = socket;
     }
     return this._propSocket;
-  }
-
-  set schema( schema ) {
-    assert( typeof schema === 'object', `'schema' should be an object` );
-    this._opts.schema = schema;
-    this._subscribe();
-  }
-
-  get schema() {
-    return this._opts.schema;
-  }
-
-  set level( level ) {
-    assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
-    this._opts.level = level;
-    this._subscribe();
-  }
-
-  get level() {
-    return this._opts.level;
   }
 
   static get DEFAULT_LOG_LEVELS() {
