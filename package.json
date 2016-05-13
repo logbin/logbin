@@ -1,6 +1,6 @@
 {
   "name": "logbin",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "description": "NodeJS client for logbin.io",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Proto-Garage/logbin.io-client.git"
+    "url": "git+https://github.com/logbin/logbin.git"
   },
   "keywords": [
     "logger",
@@ -21,9 +21,9 @@
   ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Proto-Garage/logbin.io-client/issues"
+    "url": "https://github.com/logbin/logbin/issues"
   },
-  "homepage": "https://github.com/Proto-Garage/logbin.io-client#readme",
+  "homepage": "https://github.com/logbin/logbin#readme",
   "jshintConfig": {
     "node": true,
     "undef": true,
