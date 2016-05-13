@@ -173,7 +173,11 @@ export default class Logger {
       jsonEnable( socket, 'json' );
 
       socket.on( 'json', response => {
-        this._handleRequest( response );
+        this._handleResponse( response );
+
+        if ( response.operation === 'INVALID_OPERATION' ) {
+          console.log( `${ response.error }` );
+        }
       } );
 
       socket.on( 'error', ( err ) => {
@@ -203,13 +207,12 @@ export default class Logger {
    * Server response handler
    * @param { object } response
    */
-  _handleRequest( response ) {
+  _handleResponse( response ) {
     if ( this._authPhase ) {
-      if ( response.success ) {
+      if ( response.operation === 'CONN_ACK' ) {
         this._authPhase = false;
-      } else {
-        let error = response.error;
-        throw new Error( `Error ${error.code}. ${error.message}` );
+      } else if ( response.operation === 'CONN_FAIL' ) {
+        console.log( `Connection failed. ${response.error}` );
       }
     } else {
       this._resolvePromise( response );
@@ -221,12 +224,12 @@ export default class Logger {
    * @access protected
    * @param { object } data
    */
-  _resolvePromise( data ) {
-    let deferred = promiseCache.get( data.ref );
+  _resolvePromise( response ) {
+    let deferred = promiseCache.get( response.ref );
 
-    if ( deferred && data.operation === 'SEND_ACK' ) {
+    if ( deferred && response.operation === 'SEND_ACK' ) {
       deferred.resolve( true );
-      promiseCache.del( data.ref );
+      promiseCache.del( response.ref );
     }
   }
 

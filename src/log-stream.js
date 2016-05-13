@@ -23,7 +23,6 @@ export default class LogStream extends EventEmitter {
     } );
 
     this._propSocket = this._socket;
-    this._subscribe();
   }
 
   _subscribe() {
@@ -60,7 +59,11 @@ export default class LogStream extends EventEmitter {
         }
 
         if ( data.operation === 'CONN_FAIL' ) {
-          console.log( `Connection failed. Errors: ${ data.errors }` );
+          console.log( `Connection failed. ${ data.error }` );
+        }
+
+        if ( data.operation === 'INVALID_OPERATION' ) {
+          console.log( `${ data.error }` );
         }
       } );
 
