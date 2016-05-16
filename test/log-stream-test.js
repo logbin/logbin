@@ -19,8 +19,8 @@ server.on( 'connection', socket => {
       ref: request.ref
     };
 
-    if ( request.operation === 'CONNECT' ) {
-      response.operation = 'CONN_ACK';
+    if ( request.operation === 'AUTHENTICATE' ) {
+      response.operation = 'AUTH_OK';
       response.success = true;
     }
 
@@ -41,6 +41,7 @@ function sendToOutboundClient ( request ) {
 
 describe( 'Testing Realtime Logstream API', () => {
   let config = {
+    port: 5556,
     token: 'EkjFpCW0x',
     store: 'log-stream-test'
   };

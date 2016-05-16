@@ -15,7 +15,7 @@ export default class LogStream extends EventEmitter {
     assert( opts.token, `'token' is not specified` );
 
     this._opts = _.defaults( opts, {
-      port: 5556,
+      port: 5555,
       host: 'localhost',
       level: 'silly',
       levels: LogStream.DEFAULT_LOG_LEVELS,
@@ -42,8 +42,8 @@ export default class LogStream extends EventEmitter {
   get _socket() {
     if ( !this._propSocket ) {
       let socket = net.connect( {
-        port: this._opts.port || 5556,
-        host: this._opts.host || 'localhost'
+        port: this._opts.port,
+        host: this._opts.host
       } );
 
       jsonEnable( socket, 'json' );
@@ -53,12 +53,12 @@ export default class LogStream extends EventEmitter {
           this.emit( 'log', data.payload );
         }
 
-        if ( data.operation === 'CONN_ACK' ) {
+        if ( data.operation === 'AUTH_OK' ) {
           this._authorized = true;
           this._subscribe();
         }
 
-        if ( data.operation === 'CONN_FAIL' ) {
+        if ( data.operation === 'AUTH_FAIL' ) {
           console.log( `Connection failed. ${ data.error }` );
         }
 
@@ -77,7 +77,8 @@ export default class LogStream extends EventEmitter {
 
       socket.write( {
         ref: uuid.v1(),
-        operation: 'CONNECT',
+        operation: 'AUTHENTICATE',
+        entry: 'OUTBOUND',
         store: this._opts.store,
         token: this._opts.token
       } );
