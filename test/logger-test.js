@@ -68,10 +68,14 @@ describe( 'Testing Logger API', () => {
 
   it( 'should return a new instance of logger', function *() {
     let tempLogger = logger.scope( 'temp' );
+    let clintLogger = logger.scope( 'clint' );
     let result1 = yield tempLogger.ack().error( `I am sending an error in scope temp.` );
     let result2 = yield tempLogger.ack().log( 'error', { name: 'Clint', age: '23' } );
     assert( result1, `should be resolved` );
     assert( result2, `should be resolved` );
+    assert.equal( tempLogger._opts.scope, 'temp' );
+    assert.equal( clintLogger._opts.scope, 'clint' );
+    assert.equal( logger._opts.scope, 'global' );
   } );
 
 } );
