@@ -41,6 +41,7 @@ export default class Logger {
     if ( !opts.console ) {
       assert( opts.store, `'store' is not specified` );
       assert( opts.token, `'token' is not specified` );
+      assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( opts.store ), `'store' invalid format` );
     }
 
     this._opts = _.defaults( opts, {
@@ -193,7 +194,8 @@ export default class Logger {
        */
       socket.write( {
         ref: uuid.v1(),
-        operation: 'CONNECT',
+        operation: 'AUTHENTICATE',
+        entry: 'INBOUND',
         store: this._opts.store,
         token: this._opts.token
       } );
@@ -209,9 +211,9 @@ export default class Logger {
    */
   _handleResponse( response ) {
     if ( this._authPhase ) {
-      if ( response.operation === 'CONN_ACK' ) {
+      if ( response.operation === 'AUTH_OK' ) {
         this._authPhase = false;
-      } else if ( response.operation === 'CONN_FAIL' ) {
+      } else if ( response.operation === 'AUTH_FAIL' ) {
         console.log( `Connection failed. ${response.error}` );
       }
     } else {
