@@ -47,25 +47,21 @@ export default class LogStream extends EventEmitter {
         host: this._opts.host
       } );
 
-      jsonEnable( socket, 'json' );
+      jsonEnable( socket );
 
-      socket.on( 'json', data => {
-        if ( data.operation === 'SEND_LOG' ) {
-          this.emit( 'log', data.payload );
-        }
+      socket.on( 'SEND_LOG', data => this._handleLogs( data ) );
 
-        if ( data.operation === 'AUTH_OK' ) {
-          this._authorized = true;
-          this._subscribe();
-        }
+      socket.on( 'AUTH_OK', () => {
+        this._authorized = true;
+        this._subscribe();
+      } );
 
-        if ( data.operation === 'AUTH_FAIL' ) {
-          console.log( `Connection failed. ${ data.error }` );
-        }
+      socket.on( 'AUTH_FAIL', data => {
+        console.log( `Connection failed. ${ data.error }` );
+      } );
 
-        if ( data.operation === 'INVALID_OPERATION' ) {
-          console.log( `${ data.error }` );
-        }
+      socket.on( 'INVALID_OPERATION', data => {
+        console.log( `${ data.error }` );
       } );
 
       socket.on( 'error', ( err ) => {
@@ -87,6 +83,10 @@ export default class LogStream extends EventEmitter {
       this._propSocket = socket;
     }
     return this._propSocket;
+  }
+
+  _handleLogs( data ) {
+    this.emit( 'log', data.payload );
   }
 
   static get DEFAULT_LOG_LEVELS() {
