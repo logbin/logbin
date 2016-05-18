@@ -41,6 +41,7 @@ export default class Logger {
     if ( !opts.console ) {
       assert( opts.store, `'store' is not specified` );
       assert( opts.token, `'token' is not specified` );
+      assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( opts.store ), `'store' invalid format` );
     }
 
     this._opts = _.defaults( opts, {
@@ -248,7 +249,7 @@ export default class Logger {
    */
   scope( scope ) {
     assert.equal( typeof scope, 'string', `${scope} is not a string.` );
-    let logger = new Logger( _.merge( this._opts, {
+    let logger = new Logger( _.merge( {}, this._opts, {
       scope
     } ) );
 

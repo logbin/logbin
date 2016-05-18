@@ -13,6 +13,7 @@ export default class LogStream extends EventEmitter {
 
     assert( opts.store, `'store' is not specified` );
     assert( opts.token, `'token' is not specified` );
+    assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( opts.store ), `'store' invalid format` );
 
     this._opts = _.defaults( opts, {
       port: 5556,
