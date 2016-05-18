@@ -248,7 +248,7 @@ export default class Logger {
    */
   scope( scope ) {
     assert.equal( typeof scope, 'string', `${scope} is not a string.` );
-    let logger = new Logger( _.merge( this._opts, {
+    let logger = new Logger( _.merge( {}, this._opts, {
       scope
     } ) );
 
