@@ -11,7 +11,7 @@
     "jscs": "jscs src/ test/",
     "jslint": "npm run jshint && npm run jscs",
     "test": "mocha -b --recursive test-build/",
-    "postinstall": "rm -rf dist && babel src --out-dir dist"
+    "postinstall": "babel src --out-dir dist"
   },
   "repository": {
     "type": "git",
