@@ -16,8 +16,8 @@ server.on( 'connection', socket => {
       ref: request.ref
     };
 
-    if ( request.operation === 'AUTHENTICATE' ) {
-      response.operation = 'AUTH_OK';
+    if ( request.operation === 'CONNECT' ) {
+      response.operation = 'CONN_ACK';
       response.success = true;
     }
 

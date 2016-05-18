@@ -194,8 +194,7 @@ export default class Logger {
        */
       socket.write( {
         ref: uuid.v1(),
-        operation: 'AUTHENTICATE',
-        entry: 'INBOUND',
+        operation: 'CONNECT',
         store: this._opts.store,
         token: this._opts.token
       } );
@@ -211,9 +210,9 @@ export default class Logger {
    */
   _handleResponse( response ) {
     if ( this._authPhase ) {
-      if ( response.operation === 'AUTH_OK' ) {
+      if ( response.operation === 'CONN_ACK' ) {
         this._authPhase = false;
-      } else if ( response.operation === 'AUTH_FAIL' ) {
+      } else if ( response.operation === 'CONN_FAIL' ) {
         console.log( `Connection failed. ${response.error}` );
       }
     } else {

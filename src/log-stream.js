@@ -16,7 +16,7 @@ export default class LogStream extends EventEmitter {
     assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( opts.store ), `'store' invalid format` );
 
     this._opts = _.defaults( opts, {
-      port: 5555,
+      port: 5556,
       host: 'localhost',
       level: 'silly',
       levels: LogStream.DEFAULT_LOG_LEVELS,
@@ -43,25 +43,29 @@ export default class LogStream extends EventEmitter {
   get _socket() {
     if ( !this._propSocket ) {
       let socket = net.connect( {
-        port: this._opts.port,
-        host: this._opts.host
+        port: this._opts.port || 5556,
+        host: this._opts.host || 'localhost'
       } );
 
-      jsonEnable( socket );
+      jsonEnable( socket, 'json' );
 
-      socket.on( 'SEND_LOG', data => this._handleLogs( data ) );
+      socket.on( 'json', data => {
+        if ( data.operation === 'SEND_LOG' ) {
+          this.emit( 'log', data.payload );
+        }
 
-      socket.on( 'AUTH_OK', () => {
-        this._authorized = true;
-        this._subscribe();
-      } );
+        if ( data.operation === 'CONN_ACK' ) {
+          this._authorized = true;
+          this._subscribe();
+        }
 
-      socket.on( 'AUTH_FAIL', data => {
-        console.log( `Connection failed. ${ data.error }` );
-      } );
+        if ( data.operation === 'CONN_FAIL' ) {
+          console.log( `Connection failed. ${ data.error }` );
+        }
 
-      socket.on( 'INVALID_OPERATION', data => {
-        console.log( `${ data.error }` );
+        if ( data.operation === 'INVALID_OPERATION' ) {
+          console.log( `${ data.error }` );
+        }
       } );
 
       socket.on( 'error', ( err ) => {
@@ -74,8 +78,7 @@ export default class LogStream extends EventEmitter {
 
       socket.write( {
         ref: uuid.v1(),
-        operation: 'AUTHENTICATE',
-        entry: 'OUTBOUND',
+        operation: 'CONNECT',
         store: this._opts.store,
         token: this._opts.token
       } );
@@ -83,10 +86,6 @@ export default class LogStream extends EventEmitter {
       this._propSocket = socket;
     }
     return this._propSocket;
-  }
-
-  _handleLogs( data ) {
-    this.emit( 'log', data.payload );
   }
 
   static get DEFAULT_LOG_LEVELS() {

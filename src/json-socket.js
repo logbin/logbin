@@ -28,7 +28,6 @@ function onData ( socket, data ) {
         socket.jsonInbuf = socket.jsonInbuf.slice( sep + len + 1 );
         let jsonData = JSON.parse( data );
         socket.emit( socket.jsonEvent, jsonData );
-        socket.emit( jsonData.operation, jsonData );
         continue;
       } else if ( sep < 0 && data.length < 10 ) {
 
