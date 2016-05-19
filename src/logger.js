@@ -58,7 +58,7 @@ export default class Logger {
     } );
 
     this._authPhase = true;
-    this._propSocket = this._socket;
+    this._initSocket();
   }
 
   /*
@@ -150,7 +150,7 @@ export default class Logger {
         promiseCache.set( request.ref, deferred, this._opts.timeout );
       }
 
-      this._propSocket.write( request );
+      this._opts.socket.write( request );
     }
 
     this._ack = false;
@@ -164,8 +164,8 @@ export default class Logger {
    * Gets the socket connection
    * @access protected
    */
-  get _socket() {
-    if ( !this._opts.console && !this._propSocket ) {
+  _initSocket() {
+    if ( !this._opts.console && !this._opts.socket ) {
       let socket = net.connect( {
         port: this._opts.port || 5555,
         host: this._opts.host || 'localhost'
@@ -199,9 +199,8 @@ export default class Logger {
         token: this._opts.token
       } );
 
-      this._propSocket = socket;
+      this._opts.socket = socket;
     }
-    return this._propSocket;
   }
 
   /**
@@ -235,14 +234,6 @@ export default class Logger {
   }
 
   /**
-   * Sets the socket connection
-   * @access protected
-   */
-  set _socket( socket ) {
-    this._propSocket = socket;
-  }
-
-  /**
    * Creates a new instance of Logger with the specified scope
    * @param  {string} scope
    * @return {Logger}
@@ -253,7 +244,6 @@ export default class Logger {
       scope
     } ) );
 
-    logger._propSocket = this._socket;
     return logger;
   }
 
