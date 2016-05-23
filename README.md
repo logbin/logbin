@@ -173,6 +173,78 @@ You can listen to the event when a log is received from the server.
 logstream.on( 'log', data => console.log( data ) ); // data will be in object form for easier manipulation
 ```
 
+### Adding custom event
+You can add a custom event to be called when a specifig log arrives
+
+#### Adding custom event when a specific log type (error/info/silly/etc) arrives
+#####Example:
+
+```javascript
+logstream.addCustomEvent( { event: 'mycustomevent', level: 'error' } );
+} );
+```
+
+#### Adding custom event when a specific log type (error/info/silly/etc) and data arrives
+#####Example:
+
+```javascript
+// This will look into the logs sent looking for the occurence of the message
+logstream.addCustomEvent( { event: 'mycustomevent', level: 'error', message: 'this is a log' } );
+
+// Meanwhile in the logger
+logger.error( 'this is a log' );
+} );
+```
+
+#### Adding custom event when a specific log type (error/info/silly/etc) and custom data arrives
+#####Example:
+
+```javascript
+// This will look into the logs sent looking for the occurence of the message
+logstream.addCustomEvent( { event: 'mycustomevent', level: 'error', mymsg: 'this is a log' } );
+
+// Meanwhile in the logger
+logger.error( { mymsg: 'this is a log' } );
+} );
+```
+
+#### Adding custom event that will look for logs for a specified interval
+#####Example:
+
+```javascript
+// This will look into the logs for the specified interval (in milliseconds) and will return the logs matched after the interval.
+logstream.addCustomEvent( { event: 'mycustomevent', level: 'error', interval: 5000 } );
+```
+
+#### Adding custom event that will look for logs for a specified interval and the limit of logs that should be received
+#####Example:
+
+```javascript
+// This event will look into the logs for the specified interval (in milliseconds) and limit, this custom event will be triggered on the logs exceed the limit
+logstream.addCustomEvent( { event: 'mycustomevent', level: 'error', interval: 5000, limit: 1 } );
+```
+
+####Options
+Configuration for adding custom events
+
+| Option | Definition | Required |
+|:------:| ---------- |:--------:|
+| event | the custom event name | required |
+| level | the log type/level | required |
+| message | the text occurence to search for in the logs sent | optional |
+| interval | in milliseconds, the time until the event is triggered | optional |
+| limit | the limit for the logs to be received, if limit is reached then the event is triggered. should come with interval option | optional |
+
+###Listening for the custom events
+#####Example:
+
+```javascript
+logstream.on( 'mycustomevent', ( msg, log ) => {
+    console.log( msg ); // This is the message from the log stream.
+    console.log( log ); // The log data
+} );
+```
+
 ##Server
 As of now, Logbin is still in its early stages of development. As the project initiates its testing phase, we need people to use the service to discover bugs and receive feedback for improvement. Fortunately, you can already use this service by connecting to the server with the following host.
 
