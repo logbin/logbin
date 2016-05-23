@@ -48,7 +48,8 @@ export default class Logger {
       timeout: 5,
       scope: 'global',
       levels: Logger.DEFAULT_LOG_LEVELS,
-      level: 'info'
+      level: 'info',
+      main: true
     } );
 
     this._socketOpts = _.defaults( socketOpts, {
@@ -63,11 +64,7 @@ export default class Logger {
       };
     } );
 
-    if ( !this._opts.console && !this._socketOpts.socket ) {
-      this._socketOpts.authPhase = true;
-      this._socketOpts.connected = false;
-      this._initSocket();
-    }
+    this._initSocket();
   }
 
   /*
@@ -178,9 +175,15 @@ export default class Logger {
    * @access protected
    */
   _initSocket() {
-    if ( this._opts.console || this._socketOpts.socket ) {
+    if ( this._opts.console || this._socketOpts.connected ) {
       return;
     }
+
+    if ( !this._opts.main ) {
+      return;
+    }
+
+    console.log( `Initiating socket connection to the server.` );
 
     let socket = net.connect( {
       port: this._opts.port || 5555,
@@ -202,9 +205,12 @@ export default class Logger {
     } );
 
     socket.on( 'close', () => {
-      console.log( `Socket has been closed.` );
+      console.log( `Socket has been closed. Reconnecting...` );
       this._socketOpts.connected = false;
       this._socketOpts.authPhase = true;
+      setTimeout( () => {
+        this._initSocket();
+      }, 3000 );
     } );
 
     /**
@@ -230,7 +236,7 @@ export default class Logger {
         this._socketOpts.authPhase = false;
         this._socketOpts.connected = true;
       } else if ( response.operation === 'CONN_FAIL' ) {
-        console.log( `Connection failed. ${response.error}` );
+        throw new Error( `Connection failed. ${response.error}` );
       }
     } else {
       this._resolvePromise( response );
@@ -259,7 +265,7 @@ export default class Logger {
   scope( scope ) {
     assert.equal( typeof scope, 'string', `${scope} is not a string.` );
     let logger = new Logger( _.merge( {}, this._opts, {
-      scope: scope
+      scope: scope, main: false
     } ), this._socketOpts );
 
     return logger;
