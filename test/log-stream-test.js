@@ -43,7 +43,8 @@ describe( 'Testing Realtime Logstream API', () => {
   let config = {
     port: 5556,
     token: 'EkjFpCW0x',
-    store: 'log-stream-test'
+    store: 'log-stream-test',
+    fields: [ 'name', 'status' ]
   };
 
   let realtime = new LogStream( config );
@@ -60,12 +61,18 @@ describe( 'Testing Realtime Logstream API', () => {
     }, 1000 );
   } );
 
-  it( 'should trigger the realtime.on log event', function *() {
+  it( 'Should return fields given in config', function() {
+    assert.equal( realtime.fields, config.fields );
+  } );
+
+  it( 'Should trigger the realtime.on log event', function *() {
     this.timeout( 5000 );
     let anyLog = {
       operation: 'SEND_LOG',
       payload: {
-        '@message': 'Just a usual log.',
+        name: 'Zaifel',
+        address: 'Butuan City',
+        status: 'Single',
         '@scope': 'server',
         '@level': 'silly',
         '@timestamp': new Date().toISOString()
@@ -73,7 +80,9 @@ describe( 'Testing Realtime Logstream API', () => {
     };
 
     let result = yield sendToOutboundClient( anyLog );
-    assert.equal( JSON.stringify( result ), JSON.stringify( anyLog.payload ) );
+    assert( result.name === 'Zaifel', `Name should be equal` );
+    assert( result.status === 'Single', `Status should be equal` );
+    assert( !result.address, `Address should not be included` );
   } );
 
 } );
