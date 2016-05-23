@@ -37,18 +37,25 @@ export default class Logger {
    * @param { Int }     opts.port
    * @param { String }  opts.host
    */
-  constructor( opts ) {
-    if ( !opts.console ) {
-      assert( opts.store, `'store' is not specified` );
-      assert( opts.token, `'token' is not specified` );
-      assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( opts.store ), `'store' invalid format` );
+  constructor( loggerOpts, socketOpts ) {
+    if ( !loggerOpts.console ) {
+      assert( loggerOpts.store, `'store' is not specified` );
+      assert( loggerOpts.token, `'token' is not specified` );
+      assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( loggerOpts.store ), `'store' invalid format` );
     }
 
-    this._opts = _.defaults( opts, {
+    this._opts = _.defaults( loggerOpts, {
       timeout: 5,
       scope: 'global',
       levels: Logger.DEFAULT_LOG_LEVELS,
-      level: 'info'
+      level: 'info',
+      main: true
+    } );
+
+    this._socketOpts = _.defaults( socketOpts, {
+      authPhase: true,
+      connected: false,
+      socket: undefined
     } );
 
     _.each( this._opts.levels, level => {
@@ -57,7 +64,6 @@ export default class Logger {
       };
     } );
 
-    this._authPhase = true;
     this._initSocket();
   }
 
@@ -134,6 +140,10 @@ export default class Logger {
    */
   _log( data ) {
 
+    if ( !this._socketOpts.connected ) {
+      return this._ack ? Promise.reject( `No server connection.` ) : null;
+    }
+
     let deferred;
 
     if ( this._opts.console ) {
@@ -150,7 +160,7 @@ export default class Logger {
         promiseCache.set( request.ref, deferred, this._opts.timeout );
       }
 
-      this._opts.socket.write( request );
+      this._socketOpts.socket.write( request );
     }
 
     this._ack = false;
@@ -165,42 +175,55 @@ export default class Logger {
    * @access protected
    */
   _initSocket() {
-    if ( !this._opts.console && !this._opts.socket ) {
-      let socket = net.connect( {
-        port: this._opts.port || 5555,
-        host: this._opts.host || 'localhost'
-      } );
-
-      jsonEnable( socket, 'json' );
-
-      socket.on( 'json', response => {
-        this._handleResponse( response );
-
-        if ( response.operation === 'INVALID_OPERATION' ) {
-          console.log( `${ response.error }` );
-        }
-      } );
-
-      socket.on( 'error', ( err ) => {
-        console.log( `Logger socket has encountered a problem: ${ err }` );
-      } );
-
-      socket.on( 'close', () => {
-        console.log( `Socket has been closed.` );
-      } );
-
-      /**
-       * Send authentication request to server
-       */
-      socket.write( {
-        ref: uuid.v1(),
-        operation: 'CONNECT',
-        store: this._opts.store,
-        token: this._opts.token
-      } );
-
-      this._opts.socket = socket;
+    if ( this._opts.console || this._socketOpts.connected ) {
+      return;
     }
+
+    if ( !this._opts.main ) {
+      return;
+    }
+
+    console.log( `Initiating socket connection to the server.` );
+
+    let socket = net.connect( {
+      port: this._opts.port || 5555,
+      host: this._opts.host || 'localhost'
+    } );
+
+    jsonEnable( socket, 'json' );
+
+    socket.on( 'json', response => {
+      this._handleResponse( response );
+
+      if ( response.operation === 'INVALID_OPERATION' ) {
+        console.log( `${ response.error }` );
+      }
+    } );
+
+    socket.on( 'error', ( err ) => {
+      console.log( `Logger socket has encountered a problem: ${ err }` );
+    } );
+
+    socket.on( 'close', () => {
+      console.log( `Socket has been closed. Reconnecting...` );
+      this._socketOpts.connected = false;
+      this._socketOpts.authPhase = true;
+      setTimeout( () => {
+        this._initSocket();
+      }, 3000 );
+    } );
+
+    /**
+     * Send authentication request to server
+     */
+    socket.write( {
+      ref: uuid.v1(),
+      operation: 'CONNECT',
+      store: this._opts.store,
+      token: this._opts.token
+    } );
+
+    this._socketOpts.socket = socket;
   }
 
   /**
@@ -208,11 +231,12 @@ export default class Logger {
    * @param { object } response
    */
   _handleResponse( response ) {
-    if ( this._authPhase ) {
+    if ( this._socketOpts.authPhase ) {
       if ( response.operation === 'CONN_ACK' ) {
-        this._authPhase = false;
+        this._socketOpts.authPhase = false;
+        this._socketOpts.connected = true;
       } else if ( response.operation === 'CONN_FAIL' ) {
-        console.log( `Connection failed. ${response.error}` );
+        throw new Error( `Connection failed. ${response.error}` );
       }
     } else {
       this._resolvePromise( response );
@@ -241,8 +265,8 @@ export default class Logger {
   scope( scope ) {
     assert.equal( typeof scope, 'string', `${scope} is not a string.` );
     let logger = new Logger( _.merge( {}, this._opts, {
-      scope
-    } ) );
+      scope: scope, main: false
+    } ), this._socketOpts );
 
     return logger;
   }
