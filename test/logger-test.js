@@ -45,19 +45,19 @@ describe( 'Testing Logger API', () => {
 
   let logger = new Logger( loggerConfig );
 
-  it( 'should return a promise when ack() is used.', function *() {
+  it( 'Should return a promise when ack() is used.', function *() {
     let result = yield logger.ack().error( `I am sending an error.` );
     assert( result, `should be resolved` );
   } );
 
-  it( 'should send a log with object data', function *() {
+  it( 'Should send a log with object data', function *() {
     return logger.ack().log( 'error', { name: 'Clint', age: '23' } )
       .then( ( result ) => {
         assert( result );
       } );
   } );
 
-  it( 'should return a server response failed', function *() {
+  it( 'Should return a server response failed', function *() {
     this.timeout( 7000 );
     return logger.ack().info( `Do not send a response.` ).then( ( result ) => {
       throw new Error( `Promise unexpectedly fulfilled. Result: ${result}` );
@@ -66,7 +66,7 @@ describe( 'Testing Logger API', () => {
     } );
   } );
 
-  it( 'should return a new instance of logger', function *() {
+  it( 'Should return a new instance of logger', function *() {
     let tempLogger = logger.scope( 'temp' );
     let clintLogger = logger.scope( 'clint' );
     let result1 = yield tempLogger.ack().error( `I am sending an error in scope temp.` );

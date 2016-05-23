@@ -57,7 +57,7 @@ export default class LogStream extends EventEmitter {
 
       socket.on( 'json', data => {
         if ( data.operation === 'SEND_LOG' ) {
-          this.emit( 'log', data.payload );
+          this._emitLogEvent( data.payload );
         }
 
         if ( data.operation === 'CONN_ACK' ) {
@@ -92,6 +92,39 @@ export default class LogStream extends EventEmitter {
       this._propSocket = socket;
     }
     return this._propSocket;
+  }
+
+  _emitLogEvent( log ) {
+    let fields = this._opts.fields;
+    let logToShow = {};
+
+    if ( fields && fields.length > 0 ) {
+      _.merge( logToShow, {
+        '@level': log[ '@level' ],
+        '@timestamp': log[ '@timestamp' ],
+        '@scope': log[ '@scope' ]
+      } );
+
+      _( fields ).forEach( field => {
+        logToShow[ field ] = log[ field ];
+      } );
+    } else {
+      logToShow = log;
+    }
+
+    this.emit( 'log', logToShow );
+  }
+
+  get fields() {
+    return this._opts.fields;
+  }
+
+  set fields( fields ) {
+    assert( _.isArray( fields ), `Argument for fields should be an array.` );
+    _( fields ).forEach( field => {
+      assert( typeof field === 'string', `Field value should be a string.` );
+    } );
+    this._opts.fields = fields;
   }
 
   _createInterval( opts ) {
