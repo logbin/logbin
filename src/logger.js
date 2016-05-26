@@ -44,13 +44,13 @@ export default class Logger {
       assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( loggerOpts.store ), `'store' invalid format` );
     }
 
-    this._opts = _.defaults( loggerOpts, {
+    this._opts = _.merge( {}, {
       timeout: 5,
       scope: 'global',
       levels: Logger.DEFAULT_LOG_LEVELS,
       level: 'info',
       main: true
-    } );
+    }, loggerOpts );
 
     this._socketOpts = _.defaults( socketOpts, {
       authPhase: true,

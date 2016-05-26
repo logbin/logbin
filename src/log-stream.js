@@ -15,13 +15,13 @@ export default class LogStream extends EventEmitter {
     assert( opts.token, `'token' is not specified` );
     assert( /(?!^_|^-)^[a-z0-9_-]+$/.test( opts.store ), `'store' invalid format` );
 
-    this._opts = _.defaults( opts, {
+    this._opts = _.merge( {}, {
       port: 5556,
       host: 'localhost',
       level: 'silly',
       levels: LogStream.DEFAULT_LOG_LEVELS,
       schema: {}
-    } );
+    }, opts );
 
     this._LOG_DATA = {};
     this._LOG_MSG = {
