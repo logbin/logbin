@@ -58,9 +58,12 @@ export default class Logger {
       socket: undefined
     } );
 
+    let self = this;
     _.each( this._opts.levels, level => {
-      this[ level ] =  input  => {
-        return this.log( level, input );
+      this[ level ] = function() {
+        let args = Array.from( arguments );
+        args.unshift( level );
+        return this.log.apply( self, args );
       };
     } );
 
@@ -85,16 +88,8 @@ export default class Logger {
    * @param  { String } level
    * @param  { ...* }
    */
-  log( params ) {
-    let level = params;
-    let offset = 1;
-
-    if ( arguments.length == 1 ) {
-      offset = 0;
-      level = this._opts.level;
-    } else if ( arguments.length > 1 ) {
-      assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
-    }
+  log( level ) {
+    assert( _.includes( this._opts.levels, level ), `'${level}' is not a log level` );
 
     let data = {
       '@level': level,
@@ -104,8 +99,8 @@ export default class Logger {
 
     let object = {};
 
-    _.times( arguments.length - offset, ( index ) => {
-      let arg = arguments[ index + offset ];
+    _.times( arguments.length - 1, ( index ) => {
+      let arg = arguments[ index + 1 ];
       if ( _.isPlainObject( arg ) ) {
         _.merge( object, arg );
       } else {

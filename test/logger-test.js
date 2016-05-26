@@ -12,6 +12,7 @@ let server = net.createServer().listen( 5555, 'localhost' );
 server.on( 'connection', socket => {
   jsonEnable( socket, 'json' );
   socket.on( 'json', request => {
+    console.log( `INBOUND Server received log: ${JSON.stringify( request )}` );
     let response = {
       ref: request.ref
     };
@@ -46,7 +47,7 @@ describe( 'Testing Logger API', () => {
   let logger = new Logger( loggerConfig );
 
   it( 'Should return a promise when ack() is used.', function *() {
-    let result = yield logger.ack().error( `I am sending an error.` );
+    let result = yield logger.ack().error( `I am sending an error.`, { temp: 'just some field' } );
     assert( result, `should be resolved` );
   } );
 
