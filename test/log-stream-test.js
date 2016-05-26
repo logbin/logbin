@@ -62,7 +62,7 @@ describe( 'Testing Realtime Logstream API', () => {
   } );
 
   it( 'Should return fields given in config', function() {
-    assert.equal( realtime.fields, config.fields );
+    assert.deepEqual( realtime.fields, config.fields );
   } );
 
   it( 'Should trigger the realtime.on log event', function *() {
