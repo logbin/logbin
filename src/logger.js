@@ -46,6 +46,8 @@ export default class Logger {
 
     this._opts = _.merge( {}, {
       timeout: 5,
+      port: 5555,
+      host: 'localhost',
       scope: 'global',
       levels: Logger.DEFAULT_LOG_LEVELS,
       level: 'info',
