@@ -34,7 +34,6 @@ Logger settings comes with the following options:
 | *port* | (default = 5555 ) Port used by the server inbound. | optional |
 | *host* | (default = 'localhost') Hostname of the server inbound. | optional |
 | *scope* | ( default: 'server' ) This will be the scope of your logs. | optional |
-| *level* | ( default: 'info' ) Log severity used when level is not specified upon sending the log. | optional |
 | *requestTTL* | ( default: 5 ) The standard ttl of requests in seconds when no response is received from the server. | optional |
 | *console* | ( default: false ) If set to true, logs are not sent to the server and will only show up in the console. | optional |
 
