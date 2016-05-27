@@ -46,9 +46,10 @@ export default class Logger {
 
     this._opts = _.merge( {}, {
       timeout: 5,
+      port: 5555,
+      host: 'localhost',
       scope: 'global',
       levels: Logger.DEFAULT_LOG_LEVELS,
-      level: 'info',
       main: true
     }, loggerOpts );
 
@@ -68,18 +69,6 @@ export default class Logger {
     } );
 
     this._initSocket();
-  }
-
-  /*
-  * Getter / Setter for the logger level
-  */
-
-  get level() {
-    return this._opts.level;
-  }
-
-  set level( severity ) {
-    this._opts.level = severity;
   }
 
   /**
