@@ -181,18 +181,14 @@ export default class Logger {
     console.log( `Initiating socket connection to the server.` );
 
     let socket = net.connect( {
-      port: this._opts.port || 5555,
-      host: this._opts.host || 'localhost'
+      port: this._opts.port,
+      host: this._opts.host
     } );
 
     jsonEnable( socket, 'json' );
 
     socket.on( 'json', response => {
       this._handleResponse( response );
-
-      if ( response.operation === 'INVALID_OPERATION' ) {
-        console.log( `${ response.error }` );
-      }
     } );
 
     socket.on( 'error', ( err ) => {
@@ -213,7 +209,8 @@ export default class Logger {
      */
     socket.write( {
       ref: uuid.v1(),
-      operation: 'CONNECT',
+      operation: 'AUTHENTICATE',
+      entry: 'INBOUND',
       store: this._opts.store,
       token: this._opts.token
     } );
@@ -227,10 +224,11 @@ export default class Logger {
    */
   _handleResponse( response ) {
     if ( this._socketOpts.authPhase ) {
-      if ( response.operation === 'CONN_ACK' ) {
+      if ( response.operation === 'AUTH_OK' ) {
         this._socketOpts.authPhase = false;
         this._socketOpts.connected = true;
-      } else if ( response.operation === 'CONN_FAIL' ) {
+        console.log( `Socket connected with valid token.` );
+      } else if ( response.operation === 'AUTH_FAIL' ) {
         throw new Error( `Connection failed. ${response.error}` );
       }
     } else {
@@ -244,6 +242,11 @@ export default class Logger {
    * @param { object } data
    */
   _resolvePromise( response ) {
+    if ( response.operation === 'INVALID_OPERATION' ) {
+      console.log( `${ response.error }` );
+      return;
+    }
+
     let deferred = promiseCache.get( response.ref );
 
     if ( deferred && response.operation === 'SEND_ACK' ) {
@@ -258,7 +261,7 @@ export default class Logger {
    * @return {Logger}
    */
   scope( scope ) {
-    assert.equal( typeof scope, 'string', `${scope} is not a string.` );
+    assert( typeof scope === 'string', `${scope} is not a string.` );
     let logger = new Logger( _.merge( {}, this._opts, {
       scope: scope, main: false
     } ), this._socketOpts );
