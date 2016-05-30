@@ -29,7 +29,9 @@ export default class LogStream extends EventEmitter {
       hasLogs: 'Logs received',
       tooManyLogs: 'Logs received exceeds the limit'
     };
-    this._propSocket = this._socket;
+
+    this._connected = false;
+    this._initSocket();
   }
 
   _subscribe() {
@@ -42,12 +44,8 @@ export default class LogStream extends EventEmitter {
     this._propSocket.write( request );
   }
 
-  set _socket( socket ) {
-    this._propSocket = socket;
-  }
-
-  get _socket() {
-    if ( !this._propSocket ) {
+  _initSocket() {
+    if ( !this._connected ) {
       let socket = net.connect( {
         port: this._opts.port,
         host: this._opts.host
@@ -74,7 +72,12 @@ export default class LogStream extends EventEmitter {
       } );
 
       socket.on( 'close', () => {
-        console.log( `Socket has been closed.` );
+        console.log( `Socket has been closed. Reconnecting...` );
+        this._connected = false;
+        this._authorized = false;
+        setTimeout( () => {
+          this._initSocket();
+        }, 3000 );
       } );
 
       socket.write( {
@@ -85,9 +88,7 @@ export default class LogStream extends EventEmitter {
         token: this._opts.token
       } );
 
-      this._propSocket = socket;
     }
-    return this._propSocket;
   }
 
   _emitLogEvent( log ) {
