@@ -6,7 +6,7 @@ import net          from 'net';
 import { inspect }  from 'util';
 import Promise      from 'bluebird';
 import NodeCache    from 'node-cache';
-import uuid         from 'node-uuid';
+import uuid         from 'uuid';
 import jsonEnable   from './json-socket';
 
 let promiseCache = new NodeCache( {

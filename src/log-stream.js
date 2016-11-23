@@ -4,7 +4,7 @@ import assert       from 'assert';
 import net          from 'net';
 import _            from 'lodash';
 import EventEmitter from 'events';
-import uuid         from 'node-uuid';
+import uuid         from 'uuid';
 import jsonEnable   from './json-socket';
 
 export default class LogStream extends EventEmitter {
